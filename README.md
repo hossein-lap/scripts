@@ -1,5 +1,6 @@
 # scripts
-shell scripts
+
+Shell scripts
 
 ## dm-shot.sh
 
@@ -14,7 +15,7 @@ Take screenshot using `scrot` and `dmenu`.
 
 ## ff-screenrec.sh
 
-Record from screen using `ffmpeg.`
+Record from screen using `ffmpeg`.
 
 #### Dependencies
 
@@ -24,7 +25,7 @@ Record from screen using `ffmpeg.`
 
 ## im-color.sh
 
-Change specific color in photo
+Change specific color in photo.
 
 #### Dependencies
 
@@ -40,7 +41,7 @@ Negate photo's color
 
 ## im-shadow.sh
 
-Add shadow border to photos
+Add shadow border to photos.
 
 #### Dependencies
 
@@ -48,7 +49,7 @@ Add shadow border to photos
 
 ## lfub
 
-Just a simple `lf` file-manager runner
+Just a simple `lf` file-manager runner.
 
 #### Dependencies
 
@@ -58,7 +59,7 @@ Just a simple `lf` file-manager runner
 
 ## wcam.sh
 
-show webcam with no sound from `/dev/video0`
+Show webcam with no sound from `/dev/video0`.
 
 #### Dependencies
 
@@ -66,7 +67,7 @@ show webcam with no sound from `/dev/video0`
 
 ## tb.sh
 
-Send command output to a pastebin service ([termbin.com])
+Send command output to a pastebin service ([termbin.com](termbin.com)).
 
 #### Dependencies
 
@@ -82,7 +83,7 @@ A daily note-taking script with `markdown` and using `vim` text editor.
 
 ## note-build.sh
 
-Build `pdf` and `html` files from daily notes
+Build `pdf` and `html` files from daily notes.
 
 **Neededd to be used inside vim**.
 
