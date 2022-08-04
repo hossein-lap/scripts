@@ -12,6 +12,32 @@ Take screenshot using `scrot` and `dmenu`.
 - `dmenu`
 - `sxiv`
 - `xclip`
+- `fortune`
+
+## dm-ps.sh
+
+Search and kill processes.
+
+#### Dependencies
+
+- `dmenu`
+- `fortune`
+- `awk`
+- `sed`
+
+## dm-usb.sh
+
+Manage usb devices.
+
+- Mount
+- Unmount
+- Eject
+
+#### Dependencies
+
+- `lsblk`
+- `grep`
+- `udisks2`
 
 ## ff-screenrec.sh
 
@@ -91,3 +117,11 @@ Build `pdf` and `html` files from daily notes.
 
 - `pandoc`/`Rmarkdown`
 - `LaTeX`/`groff`
+
+## xrate.sh
+
+Set second keyboard layout and Keypress dely
+
+#### Dependencies
+
+- `xrate`
