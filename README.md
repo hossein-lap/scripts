@@ -2,6 +2,9 @@
 
 Shell scripts
 
+Create `$HOME/.local/bin` directory and add it to the `PATH` variable.
+Then put these scripts on the `~/.local/bin` dir.
+
 ## dm-shot.sh
 
 Take screenshot using `scrot` and `dmenu`.
