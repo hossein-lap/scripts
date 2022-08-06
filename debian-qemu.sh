@@ -70,9 +70,9 @@ function connect () {
 
 function help () {
 cat << _EOF_
-on/r:	Run the virtual machine
-ssh/c:	Connect to the machine via ssh
-off:	Poweroff the machine
+on/r:   Run the virtual machine
+ssh/c:  Connect to the machine via ssh
+off:    Poweroff the machine
 _EOF_
 	if [[ ! -z ${qemu_pid} ]]; then
 		printf '\n%s\n' "qemu PID: ${qemu_pid}"
