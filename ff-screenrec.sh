@@ -18,10 +18,10 @@ scrCastMpeg () {
         -f x11grab \
         -s ${DemRes} \
         -i :0.0 \
+        -f alsa \
+        -i hw:0 \
         -loglevel quiet -stats \
         ~/Videos/record/screen-${Name}.mkv
-#        -f alsa \
-#        -i default \
 
 #        -c:v libx264 -r 30  \
 #        -ac 1 \
