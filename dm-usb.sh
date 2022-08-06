@@ -16,6 +16,8 @@ dmenu usb management script
 
 Usage: dm-usb.sh [muel]
 
+no args: interactive menu
+
 m:     mount device
 u:     unmount device
 e:     eject device
@@ -26,26 +28,26 @@ _EOF_
 # }}}
 # check status {{{
 stat_check () {
-	if [ -z "${device}" ]; then
-		echo "No device is available"
+	if [ -z "${1}" ]; then
+		fortune | sed 's/\t/    /g' | $dmenu > /dev/null
 		exit 0
 	fi
 }
 # }}}
 # list {{{
 list () {
-	lsblk | $dmenu -p 'List:' > /dev/null
+	lsblk --fs --ascii | $dmenu -p 'List:' > /dev/null
 }
 # }}}
 # mount {{{
 mount () {
-	device=$(lsblk -lnmp -o NAME,MOUNTPOINTS -M \
+	device=$(lsblk -lmnp -o NAME,MOUNTPOINTS -M \
 		| grep -E '[0-9]' \
 		| grep -v nvme \
 		| $dmenu \
 			-p "Mount:" )
 
-	stat_check
+	stat_check "${device}"
 
 	for i in $(printf '%s\n' ${device} | awk '{print $1};')
 	do
@@ -55,14 +57,14 @@ mount () {
 # }}}
 # unmount {{{
 unmount () {
-	device=$(lsblk -lnmp -o NAME,MOUNTPOINTS -M \
+	device=$(lsblk -lmnp -o NAME,MOUNTPOINTS -M \
 		| grep -E '[0-9]' \
 		| grep '^\/' \
 		| grep -v nvme \
 		| $dmenu \
 			-p "Unmount:" )
 
-	stat_check
+	stat_check "${device}"
 
 	for i in $(printf '%s\n' ${device} | awk '{print $1};')
 	do
@@ -72,14 +74,14 @@ unmount () {
 # }}}
 # eject {{{
 pwr_off () {
-	device=$(lsblk -lnmp -o NAME \
+	device=$(lsblk -lmnp -o NAME \
 		| grep -E -v '[0-9]$' \
 		| grep '^\/' \
 		| grep -v nvme \
 		| $dmenu \
 			-p "Eject:" )
 
-	stat_check
+	stat_check "${device}"
 
 	for i in $(printf '%s\n' ${device} | awk '{print $1};')
 	do
@@ -95,14 +97,16 @@ interactive () {
 		"Mount" \
 		"Unmount" \
 		"Eject" \
-		| $dmenu -p 'Menu:')
+		| $dmenu -p 'Interactive menu:')
+
+	stat_check "$i"
 
 	case $i in
 		Mount) mount ;;
 		Unmount) unmount ;;
 		Eject) pwr_off ;;
 		List) list ;;
-		Help) help | $dmenu -p 'dm-usb.sh' > /dev/null ;;
+		Help) help | $dmenu -p 'dm-usb.sh:' > /dev/null ;;
 		*) exit 1 ;;
 	esac
 }
@@ -113,6 +117,6 @@ case $1 in
 	u) unmount ;;
 	e) pwr_off ;;
 	l) list ;;
-	h) help | $dmenu -p 'dm-usb.sh' -l 20 -c ;;
+	h) help | $dmenu -p 'dm-usb.sh:' > /dev/null ;;
 	*) interactive ;;
 esac
