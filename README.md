@@ -9,106 +9,130 @@ Then put these scripts on the `~/.local/bin` dir.
 
 Take screenshot using `scrot` and `dmenu`.
 
-#### Dependencies
+- Dependencies
 
-- `scrot`
-- `dmenu`
-- `sxiv`
-- `xclip`
-- `fortune`
+		scrot
+		dmenu
+		sxiv
+		xclip
+		fortune
 
 ## dm-ps.sh
 
 Search and kill processes.
 
-#### Dependencies
+- Dependencies
 
-- `dmenu`
-- `fortune`
-- `awk`
-- `sed`
+		dmenu
+		fortune
+		awk
+		sed
+
+## dm-srun.sh
+
+Run custom make scripts from `~/.local/bin` and
+`~/.local/dev/hossein-lap/scripts/` which they are not part of `$PATH
+variable.
+
+- Dependencies
+
+		dmenu
 
 ## dm-usb.sh
 
 Manage usb devices.
 
-- Mount
-- Unmount
-- Eject
+1. Mount
+1. Unmount
+1. Eject
 
-#### Dependencies
+- Dependencies
 
-- `lsblk`
-- `grep`
-- `udisks2`
+		lsblk
+		grep
+		udisks2
+
+## dm-fscreen.sh
+
+Record from screen using `ffmpeg
+with more options to record area, whole screen or active window.
+
+- Dependencies
+
+		ffmpeg
+		xdpyinfo
+		awk
 
 ## ff-screenrec.sh
 
 Record from screen using `ffmpeg`.
 
-#### Dependencies
+- Dependencies
 
-- `ffmpeg`
-- `xdpyinfo`
-- `awk`
+		ffmpeg
+		xdpyinfo
+		awk
+		pgrep
+		kill
+		fortune
 
 ## im-color.sh
 
 Change specific color in photo.
 
-#### Dependencies
+- Dependencies
 
-- `imagemagick`
+		imagemagick
 
 ## im-negate.sh
 
 Negate photo's color
 
-#### Dependencies
+- Dependencies
 
-- `imagemagick`
+		imagemagick
 
 ## im-shadow.sh
 
 Add shadow border to photos.
 
-#### Dependencies
+- Dependencies
 
-- `imagemagick`
+		imagemagick
 
 ## lfub
 
 Just a simple `lf` file-manager runner.
 
-#### Dependencies
+- Dependencies
 
-- `ueberzug`
-- `bat`
-- `perl-file-mimeinfo` (`mimetype`)
+		ueberzug
+		bat
+		perl-file-mimeinfo` (`mimetype`)
 
 ## wcam.sh
 
 Show webcam with no sound from `/dev/video0`.
 
-#### Dependencies
+- Dependencies
 
-- `mplayer`
+		mplayer
 
 ## tb.sh
 
 Send command output to a pastebin service ([termbin.com](termbin.com)).
 
-#### Dependencies
+- Dependencies
 
-- `netcat`
+		netcat
 
 ## note-take.sh
 
 A daily note-taking script with `markdown` and using `vim` text editor.
 
-#### Dependencies
+- Dependencies
 
-- `vim`
+		vim
 
 ## note-build.sh
 
@@ -116,15 +140,17 @@ Build `pdf` and `html` files from daily notes.
 
 **Neededd to be used inside vim**.
 
-#### Dependencies
+- Dependencies
 
-- `pandoc`/`Rmarkdown`
-- `LaTeX`/`groff`
+		pandoc
+        Rmarkdown
+		LaTeX
+        groff
 
 ## xrate.sh
 
 Set second keyboard layout and Keypress dely
 
-#### Dependencies
+- Dependencies
 
-- `xrate`
+		xrate
