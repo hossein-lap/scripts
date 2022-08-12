@@ -10,7 +10,7 @@ bg='#00ff77'
 fg='#070707'
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
 
-# Kill function {{{
+# Kill {{{
 stop_record () {
 	pid=$(pgrep ffmpeg)
 	thesig=$(printf '%s\n' \
@@ -34,8 +34,8 @@ stop_record () {
 	fi
 }
 # }}}
-# Record window function {{{
-record_window () {
+# selecte window {{{
+record_sel_window () {
 	if [ ! -d ~/Videos/record ]; then
 		mkdir -p ~/Videos/record
 	fi
@@ -68,7 +68,41 @@ record_window () {
 	}
 }
 # }}}
-# Record screen function {{{
+# active window {{{
+record_act_window () {
+	if [ ! -d ~/Videos/record ]; then
+		mkdir -p ~/Videos/record
+	fi
+
+	local DemRes=($(xwininfo -id $(xdotool getactivewindow)))
+	local OutRes=$(xdpyinfo | grep dimensions | awk '{print $2;}')
+	local PaDev=$(pactl list short sources | awk '{print $2;}' | grep output)
+	local Name=$(date +%Y-%m-%d_%H-%M-%S)
+
+	xwininfo -id $(xdotool getactivewindow) | {
+	while IFS=: read -r k v; do
+		case "$k" in
+		*"Absolute upper-left X"*) x=$v;;
+		*"Absolute upper-left Y"*) y=$v;;
+		*"Border width"*) bw=$v ;;
+		*"Width"*) w=$v;;
+		*"Height"*) h=$v;;
+		esac
+	done
+
+	ffmpeg -y -f x11grab -framerate 30 \
+			-video_size "$((w))x$((h))" \
+			-i "+$((x+bw)),$((y+bw))" \
+			-f pulse -ac 2 \
+			-i "${PaDev}" \
+			-vcodec libx264 \
+			-acodec flac \
+			-loglevel quiet -stats \
+			~/Videos/record/"${BaseName}"-"${Name}".mkv
+	}
+}
+# }}}
+# whole screen {{{
 record_screen () {
 	if [ ! -d ~/Videos/record ]; then
 		mkdir -p ~/Videos/record
@@ -91,7 +125,7 @@ record_screen () {
 		~/Videos/record/"${BaseName}"-"${Name}".mkv
 }
 # }}}
-# Help function {{{
+# Help {{{
 help () {
 	printf '%s\n' "$0" "Record screen/window" \
 		"   using ffmpeg" \
@@ -99,15 +133,17 @@ help () {
 }
 # }}}
 
+# main {{{
 choice=$(printf '%s\n' \
-	"Whole" \
-	"Select" \
+	"Whole screen" \
+	"Active window" \
+	"Select window" \
 	"Help" \
 	"Stop" \
-	| $dmenu -p 'ffmpeg screen recorder')
+	| $dmenu -p 'ffmpeg screen recorder' | awk '{print $1;}')
 
 case $choice in
-	Select|Whole)
+	Select|Whole|Active)
 		BaseName=$(printf '%s' "" \
 			| $dmenu -p 'Output name:')
 
@@ -118,7 +154,9 @@ case $choice in
 esac
 
 case $choice in
-	Select) record_window
+	Select) record_sel_window
+	;;
+	Active) record_act_window
 	;;
 	Whole) record_screen
 	;;
@@ -126,6 +164,7 @@ case $choice in
 	;;
 	Help) help
 	;;
-	*) help
+	*) fortune | sed 's/\t/    /g' | $dmenu
 	;;
 esac
+# }}}
