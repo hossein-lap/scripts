@@ -8,7 +8,7 @@
 bg='#00ff77'
 fg='#070707'
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
-
+term="xterm -e"
 links="$(printf '%s' ''| $dmenu -p 'Put the link (ctrl-shift-y)')"
 
 if [[ -n ${links} ]]; then
@@ -17,15 +17,15 @@ if [[ -n ${links} ]]; then
 fi
 
 dl_wget () {
-	xterm -e "wget -c -P ~/Downloads ${links}"
+	$term "wget -c -P ~/Downloads ${links}"
 }
 
 dl_aria2 () {
-	xterm -e "aria2c -c -x 16 -d ~/Downloads ${links}"
+	$term "aria2c -c -x 16 -d ~/Downloads ${links}"
 }
 
 dl_ytdl () {
-	xterm -e "yt-dlp -o ~/Downloads ${links}"
+	$term "yt-dlp -o ~/Downloads ${links}"
 }
 
 help () {
