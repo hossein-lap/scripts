@@ -5,7 +5,7 @@
 # |_||_|___|	P
 #
 
-bg='#ffaa00'
+bg='#f7f7f7'
 fg='#070707'
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
 
