@@ -5,8 +5,9 @@
 # |_||_|___|   P
 #
 
-bg='#aa00ff'
+bg='#ff77cc'
 fg='#070707'
+scrot="scrot -d"
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
 
 ScrShot() {
@@ -31,12 +32,12 @@ case ${choice} in
 		## -q 99 -e 'feh $f --title "feh - scrot preview" -g 640x480 '
 	;;
 	active)
-		scrot -d 1 -u '%y%m%d_%H%M%S_$wx$h.png' \
+		scrot -u '%y%m%d_%H%M%S_$wx$h.png' \
 			-q 99 -e 'mv $f ~/Pictures/shots/; sxiv ~/Pictures/shots/$f & echo ~/Pictures/shots/$f | xclip -selection clipboard -t text/html; xclip -selection clipboard -t image/png -i ~/Pictures/shots/$f'
 		## -q 99 -e 'feh $f --title "feh - scrot preview" -g 640x480 '
 	;;
 	area)
-		scrot -d 1 -s '%y%m%d_%H%M%S_$wx$h.png' \
+		scrot -s '%y%m%d_%H%M%S_$wx$h.png' \
 			-q 99 -e 'mv $f ~/Pictures/shots/; sxiv ~/Pictures/shots/$f & echo ~/Pictures/shots/$f | xclip -selection clipboard -t text/html; xclip -selection clipboard -t image/png -i ~/Pictures/shots/$f'
 		## -q 99 -e 'feh $f --title "feh - scrot preview" -g 640x480 '
 	;;
