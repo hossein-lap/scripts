@@ -2,9 +2,9 @@
 
 Shell scripts
 
-- **(Optional)**
+**Optional:**
 
-Create `$HOME/.local/bin` directory and add it to the `PATH` variable.
+- Create `$HOME/.local/bin` directory and add it to the `PATH` variable.
 Then put these scripts on the `~/.local/bin` dir.
 
 ### dm-shot.sh
@@ -31,7 +31,7 @@ Search and kill processes.
 ### dm-srun.sh
 
 Run custom make scripts from `~/.local/bin` and
-`~/.local/dev/hossein-lap/scripts/` which they are not part of `$PATH
+`~/.local/dev/hossein-lap/scripts/` which they are not part of `$PATH`
 variable.
 
 - Dependencies

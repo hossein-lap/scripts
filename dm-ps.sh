@@ -7,11 +7,11 @@
 #
 set -e
 
-bg='#ff6500'
+bg='#ff2200'
 fg='#070707'
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 25"
 
-list=$(ps ax -o pid,user,cmd \
+list=$(ps --cols 135 ax -o pid,user,cmd \
 	| $dmenu -p 'kill:' \
 	| awk '{print $1;}')
 
