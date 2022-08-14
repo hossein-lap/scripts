@@ -59,6 +59,7 @@ with more options to record area, whole screen or active window.
 	- ffmpeg
 	- xdpyinfo
 	- awk
+    - pulseaudio
 
 ### ff-screenrec.sh
 
