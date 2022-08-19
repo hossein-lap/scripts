@@ -142,3 +142,10 @@ Set second keyboard layout and Keypress dely
 
 - Dependencies
 	- xrate
+
+### theping.sh
+
+Show the ping of 1.1.1.1 in `slstatus` program
+
+- Dependencies
+	- ping
