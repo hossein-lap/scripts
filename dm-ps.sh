@@ -11,7 +11,10 @@ bg='#ff2200'
 fg='#070707'
 dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 25"
 
-list=$(ps --cols 135 ax -o pid,user,cmd \
+list=$(ps --cols 135 ahxfo pid,%mem,%cpu,user,cmd  k %mem \
+	| sed 's/  \\_ /  ├─ /' \
+	| sed 's/|  /│  /g' \
+	| sed 's/├─ -/├─ /' \
 	| $dmenu -p 'kill:' \
 	| awk '{print $1;}')
 
