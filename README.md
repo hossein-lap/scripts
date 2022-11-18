@@ -56,7 +56,8 @@ Manage usb devices.
 ### dm-record.sh
 
 Record from screen using `ffmpeg`
-with more options to record area, whole screen or active window.
+with options to whole screen or active window,
+with or without sound, sound of mic or system.
 
 - Dependencies
 	- ffmpeg
