@@ -27,6 +27,7 @@ Take screenshot using `scrot` and `dmenu`.
 Search and kill processes.
 
 - Dependencies
+	- ps
 	- awk
 	- sed
 	- dunst (or any notification manager)
