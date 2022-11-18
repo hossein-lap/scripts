@@ -7,6 +7,8 @@ Shell scripts
 - Create `$HOME/.local/bin` directory and add it to the `PATH` variable.
 Then put these scripts on the `~/.local/bin` dir.
 
+## dmenu scripts
+
 ### dm-shot.sh
 
 Take screenshot using `scrot` and `dmenu`.
@@ -14,25 +16,25 @@ Take screenshot using `scrot` and `dmenu`.
 - Dependencies
 	- scrot
 	- dmenu
-	- sxiv
+	- (n)sxiv
 	- xclip
-	- fortune
+	- dunst (or any notification manager)
 
-### dm-ps.sh
+### dm-kill.sh
 
 Search and kill processes.
 
 - Dependencies
 	- dmenu
-	- fortune
 	- awk
 	- sed
+	- dunst (or any notification manager)
 
 ### dm-srun.sh
 
 Run custom make scripts from `~/.local/bin` and
-`~/.local/dev/hossein-lap/scripts/` which they are not part of `$PATH`
-variable.
+`~/.local/dev/hossein-lap/scripts/` which they are not
+part of my `$PATH` variable.
 
 - Dependencies
 	- dmenu
@@ -49,29 +51,32 @@ Manage usb devices.
 	- lsblk
 	- grep
 	- udisks2
+	- dunst (or any notification manager)
 
-### dm-fscreen.sh
+### dm-record.sh
 
-Record from screen using `ffmpeg
+Record from screen using `ffmpeg`
 with more options to record area, whole screen or active window.
 
 - Dependencies
 	- ffmpeg
 	- xdpyinfo
 	- awk
-    - pulseaudio
+	- pulseaudio
 
-### ff-screenrec.sh
+### dm-exit.sh
 
-Record from screen using `ffmpeg`.
+To reboot, poweroff and lock the screen.
+To this script works, you need to add a rule
+to `sudoers` file for `/bin/reboot` and `/bin/shutdown`
+to sudo not asking for a password.
 
 - Dependencies
-	- ffmpeg
-	- xdpyinfo
-	- awk
-	- pgrep
-	- kill
-	- fortune
+    - sudo
+    - slock
+    - sudo rule to run `shutdown` and `reboot` commands without asking for a password
+
+## imageMagick scripts
 
 ### im-color.sh
 
@@ -93,6 +98,8 @@ Add shadow border to photos.
 
 - Dependencies
 	- imagemagick
+
+## Other sctipts
 
 ### lfub
 
@@ -149,3 +156,19 @@ Show the ping of 1.1.1.1 in `slstatus` program
 
 - Dependencies
 	- ping
+
+### cmus-tmux.sh
+
+Run `cmus` inside `tmux` as mpd alternative.
+
+- Dependencies
+    - st
+    - cmus
+    - tmux
+
+### r.sh
+
+Run programs inside terminal and separate them from shell
+
+- Dependencies
+    - nohub
