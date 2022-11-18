@@ -1,27 +1,44 @@
 #!/bin/bash
-#   _   _
-#  | | | |
-#  | |_| |
-#  |  _  |
-#  |_| |_|
+#   ____     _
+#  |  _ \   | |
+#  | |_) |  | |
+#  |  __/ |_| |
+#  |_|   \___/
 #
 set -e
 
-bg='#ff0077'
-fg='#070707'
-dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
+# Variables {{{
+[[ -z $1 ]] && bg='#ff7700' || bg="$1"
+[[ -z $2 ]] && fg='#300a24' || fg="$2"
+[[ -z $3 ]] && nf='#fdf6e3' || nf="$3"
 
-action=$(printf '%s\n' "power-off" \
-		"reboot" | $dmenu -p "$0")
+dmenu="dmenu \
+		-sb $bg -sf $fg \
+		-nf $nf -nb $fg \
+		-i -c -l 3 -g 2"
+script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+# }}}
 
-case $action in
-	power-off)
-		shutdown -h now
+choice=$(printf '%s\n' "Cancel" "Exit" "Lock" "Shutdown" "Reboot" \
+	| $dmenu -p $script_name)
+
+case $choice in
+	Lock)
+		slock
 	;;
-	reboot)
-		reboot
+	Exit)
+		killall -u $USER
+	;;
+	Shutdown)
+		sudo shutdown -h now
+	;;
+	Reboot)
+		sudo reboot
+	;;
+	Cancel)
+		exit 0
 	;;
 	*)
-		fortune | $dmenu
+		exit 1
 	;;
 esac
