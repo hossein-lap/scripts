@@ -9,13 +9,15 @@ Then put these scripts on the `~/.local/bin` dir.
 
 ## dmenu scripts
 
+This section is all about scripts have been written using `dmenu`.
+So `dmenu` is the main dependency.
+
 ### dm-shot.sh
 
 Take screenshot using `scrot` and `dmenu`.
 
 - Dependencies
 	- scrot
-	- dmenu
 	- (n)sxiv
 	- xclip
 	- dunst (or any notification manager)
@@ -25,7 +27,6 @@ Take screenshot using `scrot` and `dmenu`.
 Search and kill processes.
 
 - Dependencies
-	- dmenu
 	- awk
 	- sed
 	- dunst (or any notification manager)
@@ -37,7 +38,7 @@ Run custom make scripts from `~/.local/bin` and
 part of my `$PATH` variable.
 
 - Dependencies
-	- dmenu
+	- No extra dependencies
 
 ### dm-usb.sh
 
@@ -73,32 +74,36 @@ to `sudoers` file for `/bin/reboot` and `/bin/shutdown`
 to sudo not asking for a password.
 
 - Dependencies
-    - sudo
-    - slock
-    - sudo rule to run `shutdown` and `reboot` commands without asking for a password
+	- sudo
+	- slock
+	- sudo rule to run `shutdown` and `reboot` commands without asking for a password
 
 ## imageMagick scripts
+
+This section is all about scripts have been written for
+image minapulation using `ImageMagick`. So `ImageMagick`
+is the main dependency.
 
 ### im-color.sh
 
 Change specific color in photo.
 
 - Dependencies
-	- imagemagick
+	- No extra dependencies
 
 ### im-negate.sh
 
 Negate photo's color
 
 - Dependencies
-	- imagemagick
+	- No extra dependencies
 
 ### im-shadow.sh
 
 Add shadow border to photos.
 
 - Dependencies
-	- imagemagick
+	- No extra dependencies
 
 ## Other sctipts
 
@@ -109,7 +114,7 @@ Just a simple `lf` file-manager runner.
 - Dependencies
 	- ueberzug
 	- bat
-	- perl-file-mimeinfo` (`mimetype`)
+	- perl-file-mimeinfo (`mimetype`)
 
 ### wcam.sh
 
@@ -123,7 +128,7 @@ Show webcam with no sound from `/dev/video0`.
 Send command output to a pastebin service ([termbin.com](termbin.com)).
 
 - Dependencies
-	- netcat
+	- netcat (GNU or OpenBSD)
 
 ### note-take.sh
 
@@ -143,6 +148,7 @@ Build `pdf` and `html` files from daily notes.
 	- Rmarkdown
 	- LaTeX
 	- groff
+	- st
 
 ### xrate.sh
 
@@ -163,13 +169,13 @@ Show the ping of 1.1.1.1 in `slstatus` program
 Run `cmus` inside `tmux` as mpd alternative.
 
 - Dependencies
-    - st
-    - cmus
-    - tmux
+	- st
+	- cmus
+	- tmux
 
 ### r.sh
 
 Run programs inside terminal and separate them from shell
 
 - Dependencies
-    - nohub
+	- nohub
