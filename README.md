@@ -9,7 +9,7 @@ Then put these scripts on the `~/.local/bin` dir.
 
 ## dmenu scripts
 
-This section is all about scripts have been written using `dmenu`.
+This section is all about scripts thar have been written using `dmenu`.
 So `dmenu` is the main dependency.
 
 ### dm-shot.sh
@@ -80,9 +80,8 @@ to sudo not asking for a password.
 
 ## imageMagick scripts
 
-This section is all about scripts have been written for
-image minapulation using `ImageMagick`. So `ImageMagick`
-is the main dependency.
+This section is all about scripts that have been written for
+image manipulation using `ImageMagick`. So `ImageMagick` is the main dependency.
 
 ### im-color.sh
 
