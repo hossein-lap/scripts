@@ -12,7 +12,7 @@ path="$HOME/.local/dev/hossein-lap/scripts"
 
 dmenu="dmenu \
 		-i \
-		-l 5 \
+		-l 0 \
 		${@} \
 		"
 #script_name=$(echo $0 | awk -F '/' '{print $NF;}')

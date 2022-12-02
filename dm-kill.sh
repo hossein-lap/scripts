@@ -10,7 +10,6 @@ set -e
 # Variables {{{
 dmenu="dmenu \
 		-i \
-		-fn GoMono:size=12 \
 		-l 25 \
 		${@} \
 		"

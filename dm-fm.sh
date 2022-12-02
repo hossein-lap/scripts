@@ -7,9 +7,16 @@
 #
 set -e
 
-bg='#55aa00'
-fg='#070707'
-dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
+# Variables {{{
+dmenu="dmenu \
+		-l 30 \
+		-b \
+		-i \
+		${@} \
+		"
+prompt="FileManager"
+#prompt="$(echo $0 | awk -F '/' '{print $NF;}')"
+# }}}
 list="ls -AXp --group-directories-first"
 
 # check status {{{
@@ -23,7 +30,7 @@ stat_check () {
 
 dm_file () {
 	file=$(printf '%s\n' './' '../'; $list)
-		printf '%s\n' "$file" | $dmenu -p "[$(pwd)]"
+		printf '%s\n' "$file" | $dmenu -p "$(pwd)"
 }
 
 while true

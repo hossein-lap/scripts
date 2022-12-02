@@ -5,11 +5,10 @@
 # |_||_|___|   P
 #
 
-bg='#00ff77'
-fg='#070707'
-dmenu="dmenu -sb $bg -sf $fg -nf $bg -nb $fg -c -l 30"
-term="xterm -e"
-links="$(printf '%s' ''| $dmenu -p 'Put the link (ctrl-shift-y)')"
+dmenu="dmenu -i -b -l 30"
+term="st"
+links="$(printf '%s' '' | $dmenu -p 'Put the link (ctrl-shift-y)')"
+dl="~/dl"
 
 if [[ -n ${links} ]]; then
 	dl_man="$(printf '%s\n' 'wget' 'aria2c' 'yt-dlp' 'help' \
@@ -17,15 +16,15 @@ if [[ -n ${links} ]]; then
 fi
 
 dl_wget () {
-	$term "wget -c -P ~/Downloads ${links}"
+	$term wget -c -P $dl ${links}
 }
 
 dl_aria2 () {
-	$term "aria2c -c -x 16 -d ~/Downloads ${links}"
+	$term aria2c -c -x 16 -d $dl ${links}
 }
 
 dl_ytdl () {
-	$term "yt-dlp -o ~/Downloads ${links}"
+	$term yt-dlp -o $dl ${links}
 }
 
 help () {
