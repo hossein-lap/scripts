@@ -6,18 +6,16 @@
 #
 
 # Variables {{{
-[[ -z $1 ]] && bg='#ff7700' || bg="$1"
-[[ -z $2 ]] && fg='#300a24' || fg="$2"
-[[ -z $3 ]] && nf='#fdf6e3' || nf="$3"
-
 dmenu="dmenu \
-		-sb $bg -sf $fg \
-		-nf $nf -nb $fg \
-		-i -c -l 35 -g 1"
-script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+		-i \
+		-l 35 \
+		${@} \
+		"
+#script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+script_name="(Un)Mount/Eject"
 # }}}
 # send notification {{{
-notify() {
+function notify() {
 	case $2 in
 		1)
 			mode=low
@@ -42,14 +40,14 @@ notify() {
 # }}}
 
 # check status {{{
-stat_check () {
+function stat_check() {
 	if [ -z "${1}" ]; then
 		exit 0
 	fi
 }
 # }}}
 # list {{{
-list () {
+function list() {
 	lsblk -o NAME,FSTYPE,LABEL,SIZE,FSSIZE,FSAVAIL,FSUSE%,MOUNTPOINT --ascii \
 		| sed 's/-/- /' \
 		| sed 's/[|`]//g'
@@ -57,7 +55,7 @@ list () {
 }
 # }}}
 # help {{{
-help () {
+function help() {
 	if [[ $1 == 'g' ]]; then
 		printf '%s\n' \
 			"dmenu usb-device management script" \
@@ -90,7 +88,7 @@ help () {
 # }}}
 # mount {{{
 lsblk_output=NAME,FSTYPE,SIZE,LABEL,MOUNTPOINTS
-mount () {
+function mount() {
 	device=$( {
 		lsblk -lm -o ${lsblk_output} -M \
 			| head -1
@@ -110,7 +108,7 @@ mount () {
 }
 # }}}
 # unmount {{{
-unmount () {
+function unmount() {
 	device=$( {
 		lsblk -lm -o ${lsblk_output} -M \
 			| head -1
@@ -130,7 +128,7 @@ unmount () {
 }
 # }}}
 # eject {{{
-pwr_off () {
+function pwr_off() {
 	device=$( {
 		lsblk -lm -o ${lsblk_output} -M \
 			| head -1
@@ -151,7 +149,7 @@ pwr_off () {
 }
 # }}}
 # interactive {{{
-interactive () {
+function interactive() {
 	i=$( {
 			printf '%s\n' \
 				"Help" "Mount" "Unmount" "Eject"
@@ -174,7 +172,7 @@ interactive () {
 			echo
 
 			list
-		} | $dmenu -p 'USB management script:')
+		} | $dmenu -p ${script_name})
 
 	stat_check "$i"
 

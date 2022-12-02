@@ -12,24 +12,20 @@
 #fi
 
 # Variables {{{
-[[ -z $1 ]] && bg='#ff7700' || bg="$1"
-[[ -z $2 ]] && fg='#300a24' || fg="$2"
-[[ -z $3 ]] && nf='#fdf6e3' || nf="$3"
-
-#bg="$1"
-#fg="$2"
-#nf="$3"
-
 dmenu="dmenu \
-		-sb ${bg} -sf ${fg} \
-		-nf ${nf} -nb ${fg} \
-		-i -c -l 30 -g 1"
-script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+		-i \
+		-fn GoMono:size=12 \
+		-l 20 \
+		${@} \
+		"
+
+script_name="ScreenShot"
+#script_name=$(echo $0 | awk -F '/' '{print $NF;}')
 # }}}
 scrot="scrot"
 directory="$HOME/screen/shots"
 execarg="mv \$f ${directory}/ & nsxiv ${directory}/\$f & echo ${directory}/\$f | xclip -selection c "
-quality="-q 100"
+quality="-q 60"
 
 # sent notification {{{
 notify() {

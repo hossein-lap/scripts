@@ -8,15 +8,17 @@
 set -e
 
 # Variables {{{
-[[ -z $1 ]] && bg='#d33682' || bg="$1"
-[[ -z $2 ]] && fg='#300a24' || fg="$2"
-[[ -z $3 ]] && nf='#fdf6e3' || nf="$3"
-
 dmenu="dmenu \
-		-sb $bg -sf $fg \
-		-nf $nf -nb $fg \
-		-i -c -l 25 -g 1"
-prompt=$(echo $0 | awk -F '/' '{print $NF;}')
+		-i \
+		-fn GoMono:size=12 \
+		-l 25 \
+		${@} \
+		"
+#prompt="$(echo $0 | awk -F '/' '{print $NF;}'):"
+prompt="Kill"
+
+mytitle="Some title"
+echo -e '\033k'$mytitle'\033\\'
 # }}}
 # sent notification {{{
 notify() {
@@ -39,14 +41,19 @@ notify() {
 }
 # }}}
 
-list=$(ps --cols 140 axfo pid,%mem,%cpu,user,cmd  k %mem \
-	| sed 's/  \\_ /  ├─ /' \
-	| sed 's/|  /│  /g' \
-	| sed 's/├─ -/├─ /' \
-	| $dmenu -p "${prompt}" \
-	| awk '{print $1;}')
+list=$( \
+	ps --cols 140 axfo pid,%mem,%cpu,user,cmd  k %mem \
+		| $dmenu -p "${prompt}" \
+		| awk '{print $1;}'
 
-if [[ $list -eq 'PID' ]]; then
+#		| sed 's/  \\_ /  ├─ /' \
+#		| sed 's/|  /│  /g' \
+#		| sed 's/├─ -/├─ /' \
+
+	)
+
+if [[ $list -eq 'PID' ]] || [[ -z $list ]]; then
+	notify 'Canceled' 1
 	exit 0
 else
 	thesig=$(printf '%s\n' \

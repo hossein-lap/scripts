@@ -7,15 +7,34 @@
 set -e
 
 # Variables {{{
-[[ -z $1 ]] && bg='#ff7700' || bg="$1"
-[[ -z $2 ]] && fg='#300a24' || fg="$2"
-[[ -z $3 ]] && nf='#fdf6e3' || nf="$3"
-
 dmenu="dmenu \
-		-sb $bg -sf $fg \
-		-nf $nf -nb $fg \
-		-i -c -l 30 -g 1"
-prompt=$(echo $0 | awk -F '/' '{print $NF;}')
+		-i \
+		-fn GoMono:size=12 \
+		-l 20 \
+		${@} \
+		"
+script_name="RecordScreen"
+#script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+# }}}
+# sent notification {{{
+notify() {
+	case $2 in
+		1)
+			mode=low
+			;;
+		2)
+			mode=normal
+			;;
+		3)
+			mode=critical
+			;;
+		*)
+			mode=normal
+			;;
+	esac
+
+	notify-send -a ${script_name} -i simplescreenrecorder -u $mode "${1}"
+}
 # }}}
 extention="mkv"
 audioCodec="aac"
@@ -37,10 +56,12 @@ stop_record () {
 		kill="kill -s 15"
 	else
 		kill="kill -s $thesig"
+#		notify "$kill"
 	fi
 
 	if [ -z "${pid}" ]; then
-		{ echo; fortune | cowsay -f tux; } | $dmenu
+		notify "Record canceled" 1
+		exit 2
 	else
 		$kill "${pid}"
 	fi
@@ -210,7 +231,7 @@ choice=$(printf '%s\n' \
 	"Select window" \
 	"Help" \
 	"Stop" \
-	| $dmenu -p 'ffmpeg screen recorder' | awk '{print $1;}')
+	| $dmenu -p "${script_name}" | awk '{print $1;}')
 
 case $choice in
 	Select|Whole|Active)
@@ -236,7 +257,8 @@ case $choice in
 	;;
 	Help) help
 	;;
-	*) { echo; fortune | cowsay -f tux; } | $dmenu
+	*)
+		notify "Record canceled" 1
 	;;
 esac
 # }}}
