@@ -9,7 +9,6 @@ set -e
 # Variables {{{
 dmenu="dmenu \
 		-i \
-		-fn GoMono:size=12 \
 		-l 20 \
 		${@} \
 		"
@@ -201,8 +200,8 @@ record_screen () {
 			-acodec ${audioCodec} \
 			-r 30 \
 			-pix_fmt yuv420p \
+			-loglevel quiet -stats \
 			"${Directory}/${BaseName}-${Name}.${extention}"
-			#-loglevel quiet -stats \
 	else
 		ffmpeg \
 			-f x11grab \
@@ -236,7 +235,7 @@ choice=$(printf '%s\n' \
 case $choice in
 	Select|Whole|Active)
 		WithAudio=$(printf '%s\n' "none" "mic" "sys" \
-			| $dmenu -l 1 -g 3 -p 'Audio?')
+			| $dmenu -p 'Audio?')
 		BaseName=$(printf '%s' "" \
 			| $dmenu -p 'Output name:')
 
