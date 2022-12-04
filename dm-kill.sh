@@ -13,11 +13,8 @@ dmenu="dmenu \
 		-l 25 \
 		${@} \
 		"
-#prompt="$(echo $0 | awk -F '/' '{print $NF;}'):"
-prompt="Kill"
-
-mytitle="Some title"
-echo -e '\033k'$mytitle'\033\\'
+prompt="$(echo $0 | awk -F '/' '{print $NF;}')"
+#prompt="Kill"
 # }}}
 # sent notification {{{
 notify() {
@@ -56,15 +53,16 @@ if [[ $list -eq 'PID' ]] || [[ -z $list ]]; then
 	exit 0
 else
 	thesig=$(printf '%s\n' \
-		"9    SIGKILL   Kill       " \
+		"15   SIGTERM   Terminate  " \
+		"9    SIGKILL   Kill       (Not Safe)" \
 		"2    SIGINT    Interrupt  " \
 		"3    SIGQUIT   Quit       " \
-		"15   SIGTERM   Terminate (Not Safe) " \
 		| $dmenu -p 'Send signal:' \
 		| awk '{print $1;}')
 
 	if [ -z "${thesig}" ]; then
-		kill="kill -s 2"
+		notify 'Canceled' 1
+		exit 0
 	else
 		kill="kill -s $thesig"
 	fi
