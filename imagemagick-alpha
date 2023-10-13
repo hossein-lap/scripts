@@ -1,0 +1,121 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: remove colors (makes transparent)
+
+usage: [-h] [-i input] [-o output] [-c color] [-p percent]
+
+    • arguemts:
+        -i --input      intput x
+        -o --output     output y
+        -c --color      the color to remove
+        -p --percent    percentage of remove
+        -h --help       print this message
+
+    • example:
+        ${prompt} -i in.png -c black -p 50 -o out.png
+
+    • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+if [ -f "${1}" ]; then
+	input=${1}
+	output=${1}
+	loopit="true"
+else
+	while [ "${#}" -gt 0 ]; do
+		case ${1} in
+			-i|--input)
+				input="${2}"
+				shift
+				;;
+			-o|--output)
+				output="${2}"
+				shift
+				;;
+			-h|--help)
+				help
+				exit 0
+				;;
+			-c|--color)
+				color="${2}"
+				shift
+				;;
+			-p|--percent)
+				fuzz="${2}"
+				shift
+				;;
+			*)
+				echo "Unknown parameter passed: ${1}"
+				exit 1
+				;;
+		esac
+		shift
+	done
+fi
+
+# checking args {{{
+if [ -z "${input}" ]; then
+	printf '%s\n\n' "No input is specified" 1>&2
+	help
+	exit 1
+fi
+
+if [ -z "${output}" ]; then
+	printf '%s\n\n' "No output is specified" 1>&2
+	help
+	exit 2
+fi
+
+if [ -z "${color}" ]; then
+	color="white"
+fi
+
+if [ -z "${fuzz}" ]; then
+	fuzz="99"
+fi
+# }}}
+# }}}
+
+if [ "${loopit}" = 'true' ]; then
+	for i in "$@"; do
+		input=${i}
+		output=${i}
+
+		printf "${prompt}: ${output}\t"
+
+		convert \
+			-transparent ${color} \
+			-fuzz ${fuzz}% \
+			${input} ${output}
+
+		if [ $? -eq 0 ]; then
+			printf '✓\n'
+		else
+			printf '×\n'
+		fi
+	done
+else
+	printf "${prompt}: ${output}\t"
+
+	convert -transparent ${color} -fuzz ${fuzz}% ${input} ${output}
+
+	if [ $? -eq 0 ]; then
+		printf '✓\n'
+	else
+		printf '×\n'
+	fi
+fi

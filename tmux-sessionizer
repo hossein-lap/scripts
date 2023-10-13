@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+# list=$(echo tmp dev w  | fzf)
+# work=$(printf '%s\n' \
+# 		"active" \
+# 		"regular" \
+# 		"special" \
+# 		"tmp" \
+# 	| fzf )
+
+session=$({ find ~/dev/primejade/ ~/w ~/documents/ -maxdepth 2 -mindepth 2 -type d; find ~/dev/hossein-lap/ ~ -maxdepth 1 -mindepth 1 -type d; } | fzf)
+
+# [ -z "${work}" ] && exit 10
+# [ "${work}" = 'active' ] && search=1
+#
+# if [ "${search}" = '1' ]; then
+# 	session=$(tmux ls | awk -F ':' '{print $1;}' | fzf --preview 'tmux list-windows -t {}')
+# else
+# 	case ${work} in
+# 		special)
+# 			watch="${HOME}/dev/primejade ${HOME}/w"
+# 			depths="-maxdepth 2 -mindepth 2"
+# 			;;
+# 		tmp)
+# 			[ ! -d /tmp/tmp ] && mkdir /tmp/tmp
+# 			watch="/tmp/tmp"
+# 			depths="-maxdepth 1 -mindepth 1"
+# 			;;
+# 		*)
+# 			watch="${HOME} ${HOME}/dev/hossein-lap"
+# 			depths="-maxdepth 1 -mindepth 1"
+# 			;;
+# 	esac
+# 	session=$(find ${watch} ${depths} -type d | fzf --preview 'exa --icons -l {}')
+# fi
+
+session_name=$(basename ${session} | tr . _)
+
+if [ -n "${session}" ]; then
+	if ! tmux has-session -t "${session_name}" 2>/dev/null; then
+		tmux new-session -s "${session_name}" -c "${session}" -d
+	fi
+
+	if [ -z "${TMUX}" ]; then
+		tmux att -t ${session_name}
+	else
+		tmux switchc -t ${session_name}
+	fi
+fi

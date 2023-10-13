@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+langs=$(printf '%s\n' \
+	c \
+	cpp \
+	golang \
+	typescript \
+	rust \
+	lua \
+	python \
+)
+coreutils=$(printf '%s\n' \
+	sed \
+	awk \
+	tr \
+	cut \
+	cat \
+	tac \
+	xargs \
+	find \
+	paste \
+)
+selected=$(echo -e "${langs}\n${coreutils}" | fzf)
+read -p "[cheatsheet]: " query
+
+if echo ${langs} | grep -qs ${selected}; then
+	# tmux neww bash -c "curl -s cht.sh/${selected}/$(echo ${query} | tr " " "+") | less -R"
+	tmux split-window -h bash -c "curl -s cht.sh/${selected}/$(echo ${query} | tr " " "+") | less -SR"
+else
+	tmux split-window -h bash -c "curl cht.sh/${selected}~${query} | less -SR"
+fi

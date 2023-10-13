@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ -z "${@}" ]; then
+	servers="4.2.2.4"
+else
+	servers="178.22.122.100 185.51.200.2"
+fi
+
+
+nmcli -g name,type connection  show  --active \
+	| awk -F: '/ethernet|wireless/ { print $1 }' \
+	| while read connection; do
+	nmcli con mod "${connection}" ipv6.ignore-auto-dns yes
+	nmcli con mod "${connection}" ipv4.ignore-auto-dns yes
+	nmcli con mod "${connection}" ipv4.dns "${servers}"
+	nmcli con down "${connection}" && nmcli con up "${connection}"
+done

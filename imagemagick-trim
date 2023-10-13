@@ -1,0 +1,103 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+## varaibles {{{
+#icon=""
+#path="${HOME}/.local/hos/chars/emoji.txt"
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+#patched="-bw 0 -g 4 -l 10"
+#style=""
+#eargs=""
+## }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: remove extra white spaces
+
+usage: [-h] [-i input] [-o output]
+
+    • arguemts:
+        -i --input      intput file
+        -o --output     output file
+        -h --help       print this message
+
+    • if no output file is given, input file will be overwritten
+
+    • running without any arguments will show this message
+
+EOF
+}
+# }}}
+# argument parsing {{{
+if [ -f "${1}" ]; then
+	input=${1}
+	output=${1}
+	loopit="true"
+else
+	while [ "${#}" -gt 0 ]; do
+		case ${1} in
+			-i|--input)
+				input="${2}"
+				shift
+				if [ -z "${input}" ]; then
+					echo "No input is specified" 1>&2
+					echo
+					help
+					exit 1
+				fi
+				;;
+			-o|--output)
+				output="${2}"
+				shift
+				if [ -z "${output}" ]; then
+					echo "No output is specified" 1>&2
+					echo
+					help
+					exit 2
+				fi
+				;;
+			-h|--help)
+				help
+				exit 0
+				;;
+			*)
+				echo "Unknown parameter passed: ${1}"
+				exit 1
+				;;
+		esac
+		shift
+	done
+fi
+# }}}
+
+if [ "${loopit}" = 'true' ]; then
+	for i in "$@"; do
+		input=${i}
+		output=${i}
+
+		printf "${prompt}: ${output}\t"
+
+		convert -trim ${input} ${output}
+
+		if [ $? -eq 0 ]; then
+			printf '✓\n'
+		else
+			printf '×\n'
+		fi
+	done
+else
+	printf "${prompt}: ${output}\t"
+
+	convert -trim ${input} ${output}
+
+	if [ $? -eq 0 ]; then
+		printf '✓\n'
+	else
+		printf '×\n'
+	fi
+fi

@@ -1,0 +1,23 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+maindate="$(date '+%y%m%d %H%M%S')"
+jaildate="$(jdate '+%y%m%d')"
+disk1_usage="/ $(df -h / | awk '/\/dev\// {print $5"%";}')"
+disk2_usage="/data $(df -h /data | awk '/\/dev\// {print $5"%";}')"
+memory_usage="Mem:$(free -h | awk '/^Mem/ {print $3"/"$2;}')"
+packages="pkgs:$(xbps-query -l | wc -l)"
+battery_status="Bat:$(slsbattery.sh)%%"
+net_ms="net:$(slsping.sh)"
+incoming_proc="$(slsproc.sh)"
+
+main="${jaildate} ${maindate}"
+left="${memory_usage} ${packages} dev:${disk1_usage} dev:${disk2_usage}"
+right="${incoming_proc} ${battery_status} ${net_ms}"
+
+printf " ${main} ; ${left} ; ${right} "

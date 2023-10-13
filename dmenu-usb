@@ -1,0 +1,296 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+set -e
+
+# Variables {{{
+prompt='usb'
+if [ "$(dmenu -v | grep -c 'hos-patched')" = 1 ]; then
+	patches="-c -bw 4"
+fi
+if [ "${EUID}" = '0' ]; then
+	deffont="-fn 'Liberation Mono'"
+fi
+style=""
+eargs=""
+sep="--------------------------------------------------------------------------"
+# }}}
+## argument parsing {{{
+#while [ "${#}" -gt 0 ]; do
+#	case ${1} in
+##		i|-i|--interactive)
+##			interactive
+##			shift
+##			;;
+#		s|-s|--style)
+#			style="${2}"
+#			shift
+#			;;
+#		a|-a|--args)
+#			eargs="${2}"
+#			shift
+#			;;
+#		m|-m|--mount)
+#			mount
+#			;;
+#		u|-u|--unmount)
+#			unmount
+#			shift
+#			;;
+#		o|-o|--off)
+#			pwr_off
+#			shift
+#			;;
+#		h|-h|--help)
+#			help c | less
+#			exit 0
+#			;;
+#		*)
+#			echo "Unknown parameter passed: ${1}"
+#			exit 1
+#			;;
+#	esac
+#	shift
+#done
+## }}}
+# launcher {{{
+#if [ "${style}" = 'tui' ]; then
+#	runner="fzf -i -m \
+#			--reverse \
+#			--border=sharp \
+#			--info=inline \
+#			--prompt=: \
+#			--marker=* \
+#			--border=sharp --border-label=${prompt} \
+#			${eargs} \
+#			"
+#elif [ -z ${DISPLAY} ]; then
+#	runner="fzf -i -m \
+#			--reverse \
+#			--no-unicode \
+#			--info=inline \
+#			--header=${prompt} --header-first \
+#			--prompt=: \
+#			--marker=* \
+#			${eargs} \
+#			"
+#elif [ "${style}" = 'gui' ]; then
+#	runner="dmenu -i -l 35 -p ${prompt} ${patches} ${eargs}"
+#else
+runner="dmenu -i -l 35 -p ${prompt} ${patches} ${deffont} ${@}"
+#fi
+# }}}
+
+# notification function {{{
+notify() {
+	case $2 in
+		1) mode=low ;;
+		2) mode=normal ;;
+		3) mode=critical ;;
+		*) mode=normal ;;
+	esac
+
+	if [ "${style}" = 'tui' ]; then
+		printf "${prompt}: ${1}\n"
+	elif [ -z "${DISPLAY}" ]; then
+		echo "${@}" >/dev/null 2>&1
+	else
+		notify-send -i xfce-mount \
+			-a ${prompt} \
+			-u $mode  \
+			"${1}" 2>/dev/null
+		printf "${prompt}: ${1}\n"
+	fi
+}
+# }}}
+# check status {{{
+stat_check() {
+	if [ -z "${1}" ]; then
+		exit 0
+	fi
+	if [ "${1}" = "${sep}" ]; then
+		exit 1
+	fi
+	if [ "${1}" = "NAME" ]; then
+		exit 2
+	fi
+	if [ $(echo "${1}" | grep -c '«') -gt 0 ]; then
+		exit 3
+	fi
+}
+# }}}
+# list {{{
+list() {
+	lsblk -o NAME,FSTYPE,LABEL,SIZE,FSSIZE,FSAVAIL,FSUSE%,MOUNTPOINT --ascii \
+		| sed -e 's/-/ /' \
+			-e 's/[|`]/•/g'
+		#| $dmenu -p 'List:' > /dev/null
+}
+# }}}
+# help {{{
+help() {
+	if [ -z ${DISPLAY} ]; then
+		printf '%s\n' \
+			"usb-device management script" \
+			"" \
+			"Usage: dm-usb.sh [muel]" \
+			"" \
+			"No args: Interactive menu" \
+			"" \
+			"m:     Mount device" \
+			"u:     Unmount device" \
+			"e:     Eject device" \
+			"l:     List of devices" \
+			"h:     Help"
+	else
+		printf '%s\n' \
+			"usb-device management script" \
+			"" \
+			"Usage: dm-usb.sh [muel]" \
+			"" \
+			"No args: Interactive menu" \
+			"" \
+			"m:     Mount device" \
+			"u:     Unmount device" \
+			"e:     Eject device" \
+			"l:     List of devices" \
+			"h:     Help" \
+			| ${runner} -p 'help' > /dev/null
+	fi
+}
+# }}}
+# mount {{{
+lsblk_output=NAME,FSTYPE,SIZE,LABEL,MOUNTPOINTS
+mount() {
+	device=$( {
+		lsblk -lm -o ${lsblk_output} -M \
+			| head -1
+		lsblk -lm -o ${lsblk_output} -M \
+			| grep -E '[0-9]' \
+			| grep -v '/\|nvme... \|sd. '
+		} \
+			| ${runner} -p 'mount' )
+
+	stat_check "${device}"
+
+	for i in $(printf '%s\n' "${device}" | awk '{print $1};')
+	do
+		mounted=$(udisksctl mount -b "/dev/${i}") \
+			&& notify "$mounted" \
+			|| notify "/dev/${i}: Operation failed" 3
+	done
+}
+# }}}
+# unmount {{{
+unmount() {
+	device=$( {
+		lsblk -lm -o ${lsblk_output} -M \
+			| head -1
+		lsblk -lmn -o ${lsblk_output} -M \
+			| grep -E '[0-9]' \
+			| grep '/'
+		} \
+			| ${runner} -p 'unmount')
+
+	stat_check "${device}"
+
+	for i in $(printf '%s\n' "${device}" | awk '{print $1};')
+	do
+		unmounted=$(udisksctl unmount -b "/dev/${i}") \
+			&& notify "$unmounted" \
+			|| notify "/dev/${i}: Operation failed" 3
+	done
+}
+# }}}
+# power-off {{{
+pwr_off() {
+	device=$( {
+		lsblk -lm -o ${lsblk_output} -M \
+			| head -1
+		lsblk -lmn -o ${lsblk_output} -M \
+			| grep 'nvme..[1-9] \|sd[a-z] ' \
+			| grep -E -v '[0-9]$\|/\|nvme..[1-9]\|sd.[1-9]'
+		} \
+		| ${runner} -p 'eject' \
+			| awk '{print $1;}')
+
+	for i in $(printf '%s\n' ${device}); do
+		power_offed=$(udisksctl power-off -b "/dev/${i}") \
+			&& notify "/dev/${i} ejected" \
+			|| notify "/dev/${i}: Operation failed" 3
+	done
+}
+# }}}
+# onair {{{
+onair() {
+	z=$(echo ${1} | grep '^•' | awk '{print $NF;}' | grep '^[0-9]')
+	w=$(echo ${1} | awk '{print $NF;}' | grep '^[0-9]')
+	if [ -z "${w}" ]; then
+		airdo=unmount
+	else
+		if [ -z ${z} ]; then
+			airdo=eject
+		else
+			airdo=mount
+		fi
+	fi
+	
+	x=$(echo ${1} | sed 's/^• //' | awk '{print $1;}')
+	doublecheck=$(doublecheckfunc)
+
+	case ${doublecheck} in
+		yes)
+			case ${airdo} in
+				eject)
+					power_offed=$(udisksctl power-off -b "/dev/${x}") \
+						&& notify "/dev/${x} ejected" \
+						|| notify "/dev/${x}: Operation failed" 3
+					;;
+				mount)
+					mounted=$(udisksctl mount -b "/dev/${x}") \
+						&& notify "$mounted" \
+						|| notify "/dev/${x}: Operation failed" 3
+					;;
+				unmount)
+					unmounted=$(udisksctl unmount -b "/dev/${x}") \
+						&& notify "$unmounted" \
+						|| notify "/dev/${x}: Operation failed" 3
+					;;
+			esac
+			;;
+		no)
+			interactive
+			;;
+		*)
+			exit 5
+			;;
+	esac
+}
+# }}}
+# interactive {{{
+interactive() {
+	i=$( {
+			printf '%s\n' \
+				"Help" "Mount" "Unmount" "Eject"
+			printf '%s\n' "${sep}"
+			list
+		} | ${runner})
+
+	stat_check "$i"
+
+	case $i in
+		[Mm]ount) mount ;;
+		[Uu]nmount) unmount ;;
+		[Ee]ject) pwr_off ;;
+		[Hh]elp) help g ;;
+		*) onair "${i}" ;;
+	esac
+}
+# }}}
+
+interactive

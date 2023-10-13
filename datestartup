@@ -1,0 +1,108 @@
+#!/bin/bash
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+echo
+{
+	echo '╭──────────────────────╮'
+	printf '│    \e[33m%s\e[0m, \e[32m%s\e[0m     │\n' \
+		`jdate '+%h'` \
+		`jdate '+%H:%M:%S'`
+	echo '│──────────────────────│'
+	jcal -P \
+		| head -n 7 \
+		| sed 's/^/│ /' \
+		| sed 's/$/ │/'
+	echo '╰──────────────────────╯'
+} | sed 's/^/  /'
+
+drawcolors() {
+	if [ -z "$1" ]; then
+		char="●"
+	else
+		char="${1}"
+	fi
+
+	if [ "${char}" = ' ' ]; then
+		char=" "
+		s=4
+	 else
+		s=3
+	fi
+
+	printf '%b'\
+		' ' \
+		" \e[00;${s}0m ${char}" \
+		" \e[00;${s}1m ${char}" \
+		" \e[00;${s}2m ${char}" \
+		" \e[00;${s}3m ${char}" \
+		" \e[00;${s}4m ${char}" \
+		" \e[00;${s}5m ${char}" \
+		" \e[00;${s}6m ${char}" \
+		" \e[00;${s}7m ${char}" \
+		' \e[0m\n'
+	printf '%b' \
+		' ' \
+		" \e[01;${s}0m ${char}" \
+		" \e[01;${s}1m ${char}" \
+		" \e[01;${s}2m ${char}" \
+		" \e[01;${s}3m ${char}" \
+		" \e[01;${s}4m ${char}" \
+		" \e[01;${s}5m ${char}" \
+		" \e[01;${s}6m ${char}" \
+		" \e[01;${s}7m ${char}" \
+		' \e[0m\n'
+#
+#	printf '%b' \
+#		' ' \
+#		" \e[02;${s}0m ${char}" \
+#		" \e[02;${s}1m ${char}" \
+#		" \e[02;${s}2m ${char}" \
+#		" \e[02;${s}3m ${char}" \
+#		" \e[02;${s}4m ${char}" \
+#		" \e[02;${s}5m ${char}" \
+#		" \e[02;${s}6m ${char}" \
+#		" \e[02;${s}7m ${char}" \
+#		' \e[0m\n'
+#	printf '%b' \
+#		' ' \
+#		" \e[03;${s}0m ${char}" \
+#		" \e[03;${s}1m ${char}" \
+#		" \e[03;${s}2m ${char}" \
+#		" \e[03;${s}3m ${char}" \
+#		" \e[03;${s}4m ${char}" \
+#		" \e[03;${s}5m ${char}" \
+#		" \e[03;${s}6m ${char}" \
+#		" \e[03;${s}7m ${char}" \
+#		' \e[0m\n'
+#	printf '%b' \
+#		' ' \
+#		" \e[04;${s}0m ${char}" \
+#		" \e[04;${s}1m ${char}" \
+#		" \e[04;${s}2m ${char}" \
+#		" \e[04;${s}3m ${char}" \
+#		" \e[04;${s}4m ${char}" \
+#		" \e[04;${s}5m ${char}" \
+#		" \e[04;${s}6m ${char}" \
+#		" \e[04;${s}7m ${char}" \
+#		' \e[0m\n'
+#	printf '%b' \
+#		' ' \
+#		" \e[05;${s}0m ${char}" \
+#		" \e[05;${s}1m ${char}" \
+#		" \e[05;${s}2m ${char}" \
+#		" \e[05;${s}3m ${char}" \
+#		" \e[05;${s}4m ${char}" \
+#		" \e[05;${s}5m ${char}" \
+#		" \e[05;${s}6m ${char}" \
+#		" \e[05;${s}7m ${char}" \
+#		' \e[0m\n'
+
+echo ''
+}
+
+drawcolors '♠'

@@ -1,0 +1,106 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: find and replace colors in images
+
+usage: [-h] [-i input] [-o output] [-f color] [-r color] [-p percent]
+
+    • arguemts:
+        -i --input      intput x
+        -o --output     output y
+        -f --find       color to be replaced
+        -r --replace    new color to replace with
+        -p --percent    percentage of replacing
+        -h --help       print this message
+
+    • running without any arguments will show this message
+
+    • example:
+
+        ${prompt} -i in.png -f rev -r blue -o out.png -p 99
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		-i|--input)
+			input="${2}"
+			shift
+			;;
+		-o|--output)
+			output="${2}"
+			shift
+			;;
+		-h|--help)
+			help
+			exit 0
+			;;
+		-f|--find)
+			find="${2}"
+			shift
+			;;
+		-r|--replace)
+			replace="${2}"
+			shift
+			;;
+		-p|--percent)
+			percent="${2}"
+			shift
+			if [ -z "${percent}" ]; then
+				percent=55
+			fi
+			;;
+		*)
+			echo "Unknown parameter passed: ${1}"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+if [ -z "${input}" ]; then
+	printf '%s\n\n' "No input is specified" 1>&2
+	help
+	exit 1
+fi
+
+if [ -z "${output}" ]; then
+	printf '%s\n\n' "No output is specified" 1>&2
+	help
+	exit 2
+fi
+
+if [ -z "${find}" ]; then
+	printf '%s\n\n' "No find-color is specified" 1>&2
+	help
+	exit 3
+fi
+
+if [ -z "${replace}" ]; then
+	printf '%s\n\n' "No replace-color is specified" 1>&2
+	help
+	exit 4
+fi
+# }}}
+
+printf '%s\t' "${output}"
+
+convert ${input} -fuzz ${percent}% -fill ${find} -opaque ${replace} ${output}
+
+if [ $? -eq 0 ]; then
+	printf '✓\n'
+else
+	printf '×\n'
+fi

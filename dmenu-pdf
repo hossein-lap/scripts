@@ -1,0 +1,32 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# exact pdf pages
+dirname="${input}-tk"
+if [ ! -d "${dirname}" ]; then
+	mkdir -p "${dirname}"
+fi
+
+for i in `seq ${pages}`; do
+	pdftk "${input}" \
+		cat ${i} \
+		output "${dirname}"/page_${i}.pdf
+done
+
+# merge pdf pages
+quality=250
+tile="2x3"
+input="page_*.pdf"
+output="merged.pdf"
+
+montage \
+	-density ${quality} \
+	-mode concatenate \
+	-tile ${tile} \
+	"${input}" \
+	${output}

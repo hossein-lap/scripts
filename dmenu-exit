@@ -1,0 +1,140 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+set -e
+
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		-h)
+			help
+			exit 0
+			;;
+		-s)
+			style="${2}"
+			shift
+			;;
+		-wm)
+			wm="${2}"
+			shift
+			;;
+		-a)
+			args="${2}"
+			shift
+			;;
+		*)
+			echo "Unknown parameter passed: ${1}"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+if [ -z ${wm} ]; then
+	wm=dwm
+fi
+
+# checking args {{{
+# }}}
+# }}}
+# variables {{{
+patched=$(dmenu -v | grep -c 'hos-patched')
+if [ ${patched} -eq 1 ]; then
+	patches="-c -bw 2 -l 8"
+else
+	prompt="${prompt}[${wm}]"
+fi
+prompt='exit'
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: exit script
+
+usage: [-h] [-wm window-manager] [-s style]
+
+    • arguemts:
+        -wm    window-manager name
+        -s     launcher style
+        -h     print this message
+        -a     extra args (to pass to the launcher)
+
+    • example:
+        ${prompt} -wm dwm -s gui -a '-l 2 -p tmp'
+
+    • default wm is dwm
+    • running without any arguments will print this message
+        - p.s: always specify the -wm flag
+EOF
+}
+# }}}
+# launcher {{{
+if [ "${style}" = 'tui' ]; then
+	runner="fzf -i \
+			--reverse \
+			--border=sharp \
+			--info=inline \
+			--prompt=: \
+			--marker=* \
+			--header=${prompt} --header-first \
+			"
+elif [ -z ${DISPLAY} ]; then
+	runner="fzf -i \
+			--reverse \
+			--no-unicode \
+			--info=inline \
+			--border=sharp --border-label=${prompt} \
+			--prompt=: \
+			--marker=* \
+			"
+elif [ "${style}" = 'gui' ]; then
+	runner="dmenu -p ${prompt} ${patches}"
+else
+	runner="dmenu -p ${prompt} ${patches}"
+fi
+# }}}
+
+case "$(readlink -f /sbin/init)" in
+	*systemd*) ctl='systemctl' ;;
+	*) ctl='loginctl' ;;
+esac
+
+choice=$(printf '%s\n' \
+	"renew" "lock" "screen-off" "exit" "poweroff" "reboot" "sleep" "hibernate" \
+	| ${runner} ${args})
+
+#if [ -z ${choice} ]; then
+#	exit 1
+#fi
+
+prompt='exit'
+args="-g 2 -l 1 ${args}"
+double_check=$(printf 'no\nyes' | ${runner} ${args})
+
+SUDO_ASKPASS=$(which dmenupass)
+
+if [ ${double_check} = 'yes' ]; then
+	case $choice in
+		poweroff) sleep .5; ${ctl} poweroff ;;
+		reboot) sleep .5; ${ctl} reboot ;;
+#		poweroff) sudo -A shutdown -h now ;;
+#		reboot) sudo -A reboot ;;
+		lock) slock & sleep .5; xset dpms force off ;;
+		exit) sleep .5; kill -TERM $(pgrep xinit -u $USER) ;;
+		renew) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
+		screen-off) sleep .5; xset dpms force off ;;
+		hibernate) slock ${ctl} hibernate -i ;;
+		sleep) slock ${ctl} suspend -i ;;
+#		suspend) sleep .5; ${ctl} suspend;;
+		cancel) exit 0 ;;
+		*) exit 1 ;;
+	esac
+else
+	exit 15
+fi
+

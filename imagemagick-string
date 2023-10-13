@@ -1,0 +1,195 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+cat << EOF
+${prompt}: create image from string
+
+usage: [-h] [-t text] [-o name] [-ps point] [-g gap] [-bg bg_color]
+       [-fg fg_color] [-fn font] [-y width] [-x height]
+
+    • arguments:
+        -i  --input          input text (as single string)
+        -o  --output         output file name
+        -bg --background     background color
+        -fg --foreground     foreground color
+        -fn --font           font name
+        -l  --length         image length
+        -w  --width          image width
+        -x  --xpos           text x position
+        -y  --ypos           text y position
+        -g  --gap            text gap size
+        -ps --point          text point-size
+        -rtl                 right-to-left text
+        -e  --extra          extra core arguments
+        -h  --help           print this message
+
+    • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+if [ "${#}" = 0 ]; then
+	echo "No arguments were passed" 1>&2
+	help
+	exit 2
+fi
+
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		-h|--help)
+			help
+			exit 0
+			;;
+		-i|--input)
+			input="${2}"
+			shift
+			;;
+		-o|--output)
+			output="${2}"
+			shift
+			;;
+		-l|--length)
+			l="${2}"
+			shift
+			;;
+		-w|--width)
+			w="${2}"
+			shift
+			;;
+		-x|--xgap)
+			x="${2}"
+			shift
+			;;
+		-y|--ygap)
+			y="${2}"
+			shift
+			;;
+		-g|--gap)
+			gaps="${2}"
+			shift
+			;;
+		-bg|--background)
+			bg_color="${2}"
+			shift
+			;;
+		-fg|--foreground)
+			fg_color="${2}"
+			shift
+			;;
+		-fn|--font)
+			font="${2}"
+			shift
+			;;
+		-ps|--point)
+			ps="-pointsize ${2}"
+			shift
+			;;
+		-e|--extra)
+			extrargs="${2}"
+			shift
+			;;
+		-rtl)
+			isrtl=1
+			;;
+		*)
+			echo "Unknown parameter passed: ${1}" 1>&2
+			help
+			exit 1
+			;;
+	esac
+	shift
+done
+# }}}
+# varaibles {{{
+if [ -z "${input}" ]; then
+	printf '** %s\n** %s\n\n' \
+		"No input text specified" \
+		"empty pic will be generated" 1>&2
+fi
+
+if [ -z "${output}" ]; then
+	echo "You must specify a output name with the filetype" 1>&2
+	help
+	exit 3
+fi
+
+if [ -z "${bg_color}" ]; then
+	bg_color=white
+fi
+
+if [ -z "${fg_color}" ]; then
+	fg_color=black
+fi
+
+if [ -z "${extrargs}" ]; then
+	extrargs=
+fi
+
+if [ -z "${isrtl}" ]; then
+	type="caption"
+else
+	type="pango"
+fi
+
+#if [ -z "${x}" ]; then
+#fi
+#
+#if [ -z "${y}" ]; then
+#fi
+
+if [ -z "${w}" ]; then
+	w=800
+fi
+
+if [ -z "${l}" ]; then
+	l=600
+fi
+
+bres="${w}x${l}"
+
+if [ -n "${gaps}" ]; then
+	gap=$(echo "${gaps} * 100" | bc)
+	il=$(echo "${l} - ${gap}" | bc)
+	iw=$(echo "${w} - ${gap}" | bc)
+	res="${il}x${iw}"
+else
+	res=${bres}
+fi
+
+if [ -z "${font}" ]; then
+	font="FreeSerif"
+fi
+# }}}
+
+printf "${prompt}: ${output}\t"
+
+convert \
+	-gravity West \
+	-background ${bg_color} \
+	-fill ${fg_color} \
+	-size ${res} \
+	-font "${font}" \
+	${ps} \
+	${extrargs} \
+	${type}:"${input}" \
+	-background ${bg_color} \
+	-gravity Center \
+	-extent ${bres} \
+	${output}
+
+if [ $? -eq 0 ]; then
+	printf '✓\n'
+else
+	printf '×\n'
+fi

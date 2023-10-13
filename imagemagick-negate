@@ -1,0 +1,19 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+for i in "$@"; do
+	printf "${prompt}: ${i}\t"
+
+	convert ${i} -channel RGB -negate ${i}
+
+	if [ $? -eq 0 ]; then
+		printf '✓\n'
+	else
+		printf '×\n'
+	fi
+done

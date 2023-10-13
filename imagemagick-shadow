@@ -1,0 +1,151 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: Create shadow around pictures
+
+usage: [-hf] [-i input] [-o output] [-bg color] [-sc color] [-bc color]
+       [-bw number]
+
+   • arguemts:
+       -i  --input        input filename
+       -o  --output       output filename
+
+       -f  --force        force replace (use when -o is empty to suppress prompt)
+
+       -bc --bcolor       border color (default: none)
+       -bw --bwidth       border width (default: 0)
+
+       -x  --sxpos        shadow x position (default: 1)
+       -y  --sypos        shadow y position (default: 1)
+       -sr --srate        shadow expand rate (default: 10)
+       -sw --swidth       shadow width (default: 110)
+       -sc --scolor       set shadow color (default: black)
+
+       -bg --background   background color (default: none)
+
+       -h  --help         print this message
+
+   • example:
+       ${prompt} -i 'test.png' -o 'with_shadow.png' -bg white -sc black -bc none -bw 0
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		-i|--input)       input="${2}";             shift  ;;
+		-o|--output)      output="${2}";            shift  ;;
+		-f|--force)       force_replace='true';     shift  ;;
+
+		-bg|--background) background_color="${2}";  shift  ;;
+
+		-bc|--bcolor)     border_color="${2}";      shift  ;;
+		-bw|--bwidth)     border_width="${2}";      shift  ;;
+
+		-x|--sxpos)       x="${2}";                 shift  ;;
+		-y|--sypos)       y="${2}";                 shift  ;;
+		-sr|--srate)      shadow_rate="${2}";       shift  ;;
+		-sc|--scolor)     shadow_color="${2}";      shift  ;;
+		-sw|--swidth)     shadow_width="${2}";      shift  ;;
+
+		-h|--help)        help;                     exit 0 ;;
+		*)  echo "Unknown parameter passed: ${1}";  exit 1 ;;
+	esac
+	shift
+done
+
+# checking args {{{
+if [ -z "${input}" ]; then
+	printf '%s\n\n' "No input is specified" 1>&2
+	help
+	exit 1
+fi
+
+if [ -z "${force_replace}" ]; then
+	force_replace="false"
+fi
+
+if [ -z "${output}" ]; then
+	printf '%s\n' "No output is specified" 1>&2
+	read -p "replace ${input}? [y/N] " replace
+	if [ "${force_replace}" != 'true' ]; then
+		if [ "${replace}" = 'y' ]; then
+			output="${input}"
+		else
+			help
+			exit 2
+		fi
+	fi
+fi
+
+if [ -z "${shadow_color}" ]; then
+	shadow_color="black"
+fi
+
+if [ -z "${background_color}" ]; then
+	background_color="none"
+fi
+
+if [ -z "${border_width}" ]; then
+	border_width="0"
+fi
+
+if [ -z "${border_color}" ]; then
+	border_color="none"
+fi
+
+if [ -z "${shadow_width}" ]; then
+	shadow_width="110"
+fi
+
+if [ -z "${shadow_rate}" ]; then
+	shadow_rate="10"
+fi
+
+if [ -z "${x}" ]; then
+	x="1"
+fi
+
+if [ -z "${y}" ]; then
+	y="1"
+fi
+# }}}
+# }}}
+
+printf '%s\t' "${prompt}:" "${input} => ${output}"
+
+if [ -z "${#}" ]; then
+	printf '%s\n' "No image name or argument is specified :/"
+	exit 1
+fi
+
+$(which convert) \
+	${input} \
+	-bordercolor ${border_color} \
+	-border ${border_width} \( \
+		+clone -background \
+		${shadow_color} -shadow ${shadow_width}x${shadow_rate}+${x}+${y} \
+	\) \
+	+swap -background ${background_color} \
+	-layers merge +repage \
+	${output} \
+	2>/dev/null
+
+if [ $? -eq 0 ]; then
+	printf '✓\n'
+else
+	printf '×\n'
+fi

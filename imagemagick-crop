@@ -1,0 +1,62 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# variables {{{
+path="/home/hos/dev/hossein-lap/workflow/scripts"
+
+iname="${1}"
+oname="${2}"
+sqrp='10'
+
+## get dementions:
+# identify me-temp.png | awk '{print $3;}'
+dmax=$(identify ${iname} | awk '{print $3;}')
+x=$(echo ${dmax} | sed 's/x.*//')
+y=$(echo ${dmax} | sed 's/.*x//')
+midx=$(echo "${x} / 2 " | bc)
+midy=$(echo "${y} / 2 " | bc)
+# }}}
+
+# circle {{{
+circle() {
+	magick \
+		${iname} \( \
+			+clone \
+			-threshold 100% \
+			-fill white \
+			-draw \
+				"roundrectangle 0,0 ${x},${y} ${midx},${midy}" \
+		\) \
+		-channel-fx '| gray=>alpha'\
+		${oname}
+
+	${path}/imtrim.sh ${oname}
+	${path}/imshadow.sh ${oname}
+}
+# }}}
+
+# square {{{
+square() {
+	magick \
+		${iname} \( \
+			+clone \
+			-size ${x}x${y} \
+			-threshold 100% \
+			-fill white \
+			-draw \
+				"roundrectangle 0,0 ${x},${y} ${sqrp},${sqrp}" \
+		\) \
+		-channel-fx '| gray=>alpha'\
+		${oname}
+
+	${path}/imshadow.sh ${oname}
+	${path}/imtrim.sh ${oname}
+}
+# }}}
+
+square

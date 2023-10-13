@@ -1,0 +1,37 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+status=$(acpi -b | awk '{print $3}' | sed 's/[%,]//g')
+percent=$(acpi -b | awk '{print $4}' | sed 's/[%,]//g')
+args="-a $(echo "$0" | awk -F '/' '{print $NF;}') -i battery"
+
+if [ $status = 'Discharging' ]; then
+	symbol='-'
+	if [ $percent -lt 6 ]; then
+		time=$(echo "`date +%s` % 30" | bc)
+		if [ "$time" -eq '0' ]; then
+			mpv --volume=50 --really-quiet ~/mus/sounds/notify/alert.wav &
+			notify-send $args -u critical "Baterry is dying: ${percent}%"
+		fi
+	fi
+elif [ $status = 'Full' ]; then
+	symbol='*'
+	time=$(echo "`date +%s` % 900" | bc)
+	if [ "$time" -eq '0' ]; then
+#		mpv --volume=60 --really-quiet ~/mus/sounds/notify/low.wav &
+		notify-send $args -u normal "Baterry is full: ${percent}%"
+	fi
+else
+	symbol='+'
+	percent=$(acpi -b | awk -F '%' '{print $1;}' | awk '{print $NF;}')
+fi
+
+printf '%s' "${symbol}${percent}"
+#printf '%s\n' "$status"
+#elif [ $status = 'Full' ] && [ $percent = 100 ]; then
+	#notify-send $args -u low "Baterry is fully charged"

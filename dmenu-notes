@@ -1,0 +1,185 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+icon="note"
+path="${HOME}/doc/notes"
+if [ "$(dmenu -v | grep -c hos)" = '1' ]; then
+	patches="-g 2 -l 2 -c -bw 4"
+fi
+prompt="notes"
+date=$(date '+%Y-%m-%d')
+
+msname="${path}/ms/${date}.ms"
+mdname="${path}/md/${date}.md"
+pdfname="${path}/pdf/${date}.pdf"
+htmlname="${path}/html/${date}.html"
+
+pdfview="zathura"
+# }}}
+# launcher {{{
+menu="dmenu -l 9 -p ${prompt} ${patches} ${@}"
+st="st -T note"
+font="Source Code Pro:size=16"
+title="note"
+# }}}
+# notification function {{{
+notify() {
+	summary="${1}"
+	if [ -z "${2}" ] || [ "${2}" = 1 ] || [ "${2}" = 2 ] || [ "${2}" = 3 ]; then
+		case ${2} in
+			1) mode=low ;;
+			2) mode=normal ;;
+			3) mode=critical ;;
+			*) mode=normal ;;
+		esac
+		#msgbody="${3}"
+	else
+		case ${3} in
+			1) mode=low ;;
+			2) mode=normal ;;
+			3) mode=critical ;;
+			*) mode=normal ;;
+		esac
+		msgbody="${2}"
+	fi
+
+	if [ ${mode} = 'critical' ]; then
+		iferror="stderr"
+	else
+		iferror="stdout"
+	fi
+
+	notify-send -a "${prompt}" -u ${mode} -i ${icon} \
+		"${summary}" "${msgbody}" 2>/dev/null
+	printf '[%s] %s: %s\n' "${prompt}" "${summary}" "${msgbody}" >/dev/${iferror}
+}
+# }}}
+# mkdir function {{{
+dirmk() {
+	if [ ! -d "${1}" ]; then
+		mkdir -p "${1}"
+	fi
+}
+# }}}
+
+# note functions
+# new notes {{{
+new_note() {
+	time=$(date '+%H:%M')
+	if [ ! -f "${mdname}" ]; then
+		printf '%s\n' \
+			"# Notes for ${date}" \
+			> "${mdname}"
+#			".SH" ".LG" ".LG" \
+#			"Note for ${date}" \
+	fi
+
+	st -t ${title} -s 7 -f "${font}" \
+		nvim \
+		-c "lua CurrentColorscheme = 'paramount'" \
+		-c "lua ColorThem(CurrentColorscheme)" \
+		-c "set ls=0" \
+		-c "norm Go" \
+		-c "norm Go## ${time}" \
+		-c "norm Go" \
+		-c "norm Go" \
+		-c "startinsert" \
+		-c "norm zz" "${mdname}"
+
+#		-c "norm Go.SH" \
+#		-c "norm Go${time}" \
+#		-c "norm Go.PP" \
+#		-c "norm Go" \
+#		-c "norm zz" "${msname}"
+
+	build_note "${date}.md"
+}
+# }}}
+# edit notes {{{
+edit_note() {
+	patches="-l 15"
+	loc="${path}/md"
+	thenote=$(ls -r "${loc}" | ${menu} ${patches})
+
+	if [ "${thenote}" != '' ]; then
+		st -t ${title} -s 7 -f "${font}" \
+			nvim \
+			-c "set ls=0" \
+			-c "lua CurrentColorscheme = 'paramount'" \
+			-c "lua ColorThem(CurrentColorscheme)" \
+			${loc}/${thenote}
+	fi
+}
+# }}}
+# view notes {{{
+view_note() {
+	patches="-l 15"
+	loc="${path}/pdf"
+	thenote=$(ls -r "${loc}" | ${menu} ${patches})
+
+	if [ "${thenote}" != '' ]; then
+		notify "viewing" "${loc}/${thenote}"
+		${pdfview} ${loc}/${thenote}
+	fi
+}
+# }}}
+# build note {{{
+build_note() {
+	src="${path}/md/${1}"
+	if [ -f "${src}" ]; then
+		ms=$(echo "${src}" | sed 's/md/ms/g')
+		pdf=$(echo "${src}" | sed 's/md/pdf/g')
+		html=$(echo "${src}" | sed 's/md/html/g')
+		ps=$(echo "${src}" | sed 's/md/ps/g')
+
+#		printf '%s\n\t%s\n\t%s\n\t%s\n' "${src}" "${ms}" "${pdf}" "${html}"
+		notify "building.." "$(echo ${1} | sed 's/\.md//')"
+
+		pandoc -L ~/.config/pandoc/filters/tex-codeblock-en.lua "${src}" -o "${pdf}"
+#		lowdown -Thtml "${src}" > "${html}"
+#		lowdown --nroff-no-numbered --nroff-no-groff -Tms "${src}" > "${ms}"
+#		groff -mspdf -keUs -Tpdf "${ms}" > "${pdf}"
+##		{ echo ".fam H"; cat "${ms}"; } | groff -mspdf -keUs -Tpdf > "${pdf}"
+##		{ echo ".fam H"; cat "${ms}"; } | groff -mspdf -keUs > "${ps}"
+	fi
+}
+
+build_wrapper() {
+	patches="-l 15"
+
+	if [ "${#}" -eq 0 ]; then
+		for i in $(ls ${path}/md); do
+			build_note "${i}"
+		done
+	elif [ "${#}" -eq 1 ]; then
+		build_note "${1}"
+	else
+		for i in ${@}; do
+			build_note "${i}"
+		done
+	fi
+}
+# }}}
+
+dirmk "${path}"
+dirmk "${path}/md"
+dirmk "${path}/ms"
+dirmk "${path}/pdf"
+#dirmk "${path}/ps"
+dirmk "${path}/html"
+
+choice=$(printf '%s\n' 'view' 'build' 'new' 'edit' | ${menu})
+
+case ${choice} in
+	build) build_wrapper ;;
+	new) new_note ;;
+	edit) edit_note ;;
+	view) view_note ;;
+	*) notify 'unknown behavior' 'wanted to cancel?!'; exit 2 ;;
+esac

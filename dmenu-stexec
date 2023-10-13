@@ -1,0 +1,43 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+c='•'
+
+tmp() {
+cat << EOF
+	${SHELL}
+	xbps-query -Rs 
+	sudo sv restart 
+	iwctl station list 
+	pulsemixer
+	xprop
+	btop
+EOF
+}
+
+term="st -t Terminal"
+sh="bash"
+prompt='exec'
+
+pached=$(dmenu -v | grep -c 'hos-patched')
+if [ ${pached} -eq 1 ]; then
+	patches="-c -bw 4 -g 1"
+fi
+
+runner="dmenu -p ${prompt} -l 15 ${patches} ${@}"
+
+#${sh} -c \
+#	"$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' \
+#		| ${runner} | sed "s/^${c} //")"
+
+cmd=$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' | ${runner} | sed "s/^${c} //")
+
+
+
+${term} \
+	${sh} -c "${cmd} && ${sh}" \

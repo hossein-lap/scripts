@@ -1,0 +1,40 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+set -e
+
+null=♦
+test='4.2.2.4'
+
+if [ -z ${1} ]; then
+	dev=enp46s0
+else
+	dev=$1
+fi
+
+lip=$(ip a \
+	| grep ${dev} \
+	| grep 'inet ' \
+	| awk '{print $2;}' \
+	| awk -F '/' '{print "["$1;}')
+
+[ -z $lip ] && lip=$null
+
+mess=$(ping -c 1 ${test} \
+	| grep bytes \
+	| grep -v PING \
+	| awk -F '=' '{print $NF;}' \
+	| grep '^[0-9]')
+
+if [ $(echo $mess | awk '{print $NF}') = 'ms' ]; then
+	ping=$(echo "${mess}" | awk '{print $1"ms]";}')
+else
+	ping=
+fi
+
+printf "${lip} ${ping}"

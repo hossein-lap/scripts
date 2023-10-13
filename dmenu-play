@@ -1,0 +1,142 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+pached=$(dmenu -v | grep -c 'hos-patched')
+if [ ${pached} -eq 1 ]; then
+	# extratitle=$(mpc status '[%state%]')
+	# extratitle=$(mpc status '[%songpos%/%length%]')
+	extratitle=$(mpc status \
+		| sed 's/: /:/g' \
+		| awk '/^volume/ {print $1;}' \
+		| awk -F ':' '{print $2;}')
+	patches="-c -g 1 -bw 2 -l 8"
+fi
+status=$(mpc | tail -1 | sed -e 's/: /:/g')
+prompt='music'
+runner="dmenu -p ${prompt} ${patches} ${@}"
+choice=$(printf '%s\n' "play" "pause" "next" "prev" \
+		"volume" "playlist" "clear" "setting" \
+	| ${runner})
+
+if [ -z "${choice}" ]; then
+	exit 1
+fi
+
+notify() {
+	while [ "${#}" -gt 0 ]; do
+		case ${1} in
+			-t) title="${2}";   shift ;;
+			-s) summary="${2}"; shift ;;
+			-b) body="${2}";    shift ;;
+			-i) icon="${2}";    shift ;;
+			*) echo "notify: Unknown parameter: ${1}" 1>&2; exit 1 ;;
+		esac
+		shift
+	done
+
+	if [ -z "${title}" ]; then
+		title="mpd"
+	fi
+	if [ -z "${summary}" ]; then
+		summary="untitled"
+	fi
+	if [ -z "${body}" ]; then
+		body=""
+	fi
+	if [ -z "${icon}" ]; then
+		icon=mpd
+	fi
+
+	notify-send -i ${icon} -a "${title}" "${summary}" "${body}"
+	printf '[%s] %s: %s\n' "${title}" "${summary}" "${body}"
+
+#	echo -e "${title}" | sed 's/^-e //'
+#	if [ -n "${summary}" ]; then
+#		echo -e "${summary} \n" | sed 's/^-e //'
+#	fi
+}
+
+dotoggle() {
+	key=$(echo "${1}" | awk -F ':' '{print $1;}')
+	value=$(echo "${1}" | awk -F ':' '{print $NF;}')
+	case ${i} in
+		repeat) settings_icon="media-playlist-repeat" ;;
+		random) settings_icon="media-playlist-shuffle" ;;
+		single) settings_icon="media-playlist-repeat" ;;
+		*) settings_icon="application-menu" ;;
+	esac
+	if [ ${value} = 'on' ]; then
+		mpc ${key} off >/dev/null 2>&1
+		notify -s "${key}" -b "off" -i "${settings_icon}"
+	elif [ ${value} = 'off' ]; then
+		mpc ${key} on >/dev/null 2>&1
+		notify -s "${key}" -b "on" -i "${settings_icon}"
+	fi
+}
+
+togglesettings() {
+	for i in ${1}; do
+		case ${i} in
+			repeat) dotoggle $(echo ${status} | awk '{print $2;}') ;;
+			random) dotoggle $(echo ${status} | awk '{print $3;}') ;;
+			single) dotoggle $(echo ${status} | awk '{print $4;}') ;;
+			consume) dotoggle $(echo ${status} | awk '{print $5;}') ;;
+		esac
+	done
+}
+
+case ${choice} in
+	play) theicon="player_play" ;;
+	pause) theicon="player_pause" ;;
+	next) theicon="player_end" ;;
+	prev) theicon="player_start" ;;
+	volume) theicon="" ;;
+	playlist) theicon="stock_new-dir" ;;
+	clear) theicon="window-close" ;;
+	setting) theicon="application-menu" ;;
+	*) theicon="" ;;
+esac
+
+case ${choice} in
+	setting)
+		settings=$({ printf '%s\n' "run" "kill" "repeat" "random" "single" "consume" \
+				"------------------------------------"; mpc; } \
+			| ${runner} -l 15 -g 1)
+
+		if [ -z "${settings}" ]; then
+			exit 2
+		else
+			case ${settings} in
+				run) mpd & disown ;;
+				kill) mpd --kill ;;
+				*) togglesettings "${settings}" ;;
+			esac
+		fi
+		;;
+	playlist)
+		args="-l 25 -g 1"
+		theplaylist=$(mpc ls${choice} | sort | ${runner} ${args})
+		for i in ${theplaylist}; do
+			mpc load ${i}
+			notify -s "«${i}»" -b "loading.." -i ${theicon}
+		done
+		;;
+	clear)
+		mpc ${choice}
+		notify -s "${choice}" -b "Cleared playlist(s)" -i ${theicon}
+		;;
+	*)
+		mpc ${choice} &
+		sleep 0.1
+		trackartist=$(mpc -f "[%artist%]" | head -n 1)
+		trackname="$(mpc -f "[%title%]" | head -n 1)"
+		tracktime="$(mpc status '[%currenttime%]/[%totaltime%]')"
+		trackvolume="$(mpc status '[%volume%]')"
+		notify -t "${trackname}" -s "${trackartist}" -b "[${tracktime}] \t\t [vol: ${trackvolume}]" -i ${theicon}
+		;;
+esac

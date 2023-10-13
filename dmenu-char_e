@@ -1,0 +1,149 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+path="${HOME}/dev/hossein-lap/workflow/local/chars/emoji"
+prompt='emoji'
+#list=$(printf '%s\n' \
+#	😁 🤣 😂 😅 🥰 😍 \
+#	😘 😙 😎 🧐 🥺 😉 \
+#	🤔 😐 😑 😶 🫥 😏 \
+#	😒 🙄 😌 🤤 😋 🤐 \
+#	🤨 😡 😠 🤬 😈 👿 \
+#	🖐️ 👌 🤌 ✌️ 🤟 🤘 \
+#	🤙 👍 👎 ☝️ 👊 🧠 \
+#	🫀 💋 🧡 💛 ❤️ 💔 \
+#	🙈 💀 💩 🤡 👻 ☕ \
+#	🌹 🌼 🥀 🌺 🌻 🍺 \
+#	🍻 🥂 🥃 🍷 🍸 🔥 \
+#	👑 ♠️ ♥️ ♦️ ♣️ 🃏 \
+#	🚭 🚫 ⚠️ 🚬 📎
+#)
+patched=$(dmenu -v | grep -c hos)
+if [ "${patched}" -eq 1 ]; then
+	patches="-g 2 -bw 0 -l 6"
+fi
+style=""
+eargs=""
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: select and copy emoji(s) to clipboard
+
+Usage: [-h] [-s style] [-a arguments]
+
+Arguments:
+    UNIX-style:
+             -s      <style>
+             -a      <arguments>
+             -h      print this message
+
+    BSD-style:
+             s       <style>
+             a       <arguments>
+             h       print this message
+
+    GNU-style:
+       --style       <style>
+       --args        <arguments>
+       --help        print this message
+
+    <style>
+        • gui        use “dmenu” as run launcher (default)
+        • tui        use “fzf” instead
+
+    <arguments>
+        • specify extra argument(s) to the run launcher (dmenu or fzf)
+
+Running without any arguments:
+    • the default behavior of the script is to use dmenu as run launcher
+
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		s|-s|--style)
+			style="${2}"
+			shift
+			;;
+		a|-a|--args)
+			eargs="${2}"
+			shift
+			;;
+		h|-h|--help)
+			help | less
+			exit 0
+			;;
+		*)
+			echo "Unknown parameter passed: ${1}"
+			exit 1
+			;;
+	esac
+	shift
+done
+# }}}
+# launcher {{{
+if [ "${style}" = 'tui' ]; then
+	runner="fzf -i -m \
+			--reverse \
+			--border=sharp \
+			--info=inline \
+			--prompt=: \
+			--marker=* \
+			--header=${prompt} --header-first \
+			${eargs} \
+			"
+elif [ -z ${DISPLAY} ]; then
+	runner="fzf -i -m \
+			--reverse \
+			--no-unicode \
+			--info=inline \
+			--border=sharp --border-label=${prompt} \
+			--prompt=: \
+			--marker=* \
+			${eargs} \
+			"
+elif [ "${style}" = 'gui' ]; then
+	runner="dmenu -l 9 -p ${prompt} ${patches} ${eargs}"
+else
+	runner="dmenu -l 9 -p ${prompt} ${patches} ${eargs}"
+fi
+# }}}
+# notification function {{{
+notify() {
+	if [ "${style}" = 'tui' ]; then
+		printf '%s: %s\n' "${1}" "${2}"
+	elif [ -z "${DISPLAY}" ]; then
+		echo "${@}" >/dev/null 2>&1
+	else
+		notify-send -i clipman -a ${prompt} "${1}" "${2}" 2>/dev/null
+		printf '%s: %s\n' "${1}" "${2}"
+	fi
+}
+# }}}
+# launch function {{{
+choose_emoji() {
+#	chosen=$(${runner} < "${path}")
+	chosen=$(grep -v '^#' "${path}" | ${runner})
+
+	if [ -n "${chosen}" ]; then
+		clipit=$(printf "${chosen}" \
+			| sed 's/ .*//' \
+			| tr -d '\n')
+		echo ${clipit} \
+			| tr -d '\n' \
+			| xclip -selection clipboard
+		notify "Copied to clipboard" "${clipit}"
+	fi
+}
+# }}}
+
+choose_emoji

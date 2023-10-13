@@ -1,0 +1,30 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# Variables {{{
+path="${HOME}/dev/hossein-lap/workflow/scripts"
+
+patched=$(dmenu -v | grep -c 'hos-patched')
+if [ ${patched} -eq 1 ]; then
+	patches="-c -bw 4 -g 1 -l 11"
+fi
+dmenu="dmenu \
+		-i \
+		${patches} \
+		${@} \
+		"
+script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+#script_name="ScriptRunner"
+# }}}
+
+script=$(printf '%s\n' \
+	"$(ls ${path}/*.sh)" \
+	| awk -F '/' '{print $NF;}' \
+	| $dmenu -p "${script_name}")
+
+sh ${path}/$script "${@}"

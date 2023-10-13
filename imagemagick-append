@@ -1,0 +1,126 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# varaibles {{{
+icon="imagemagick"
+stamp="$(date +%y%m%d_%H%M%S)"
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+## help function {{{
+#help() {
+#cat << EOF
+#${prompt}: select and copy emojies to clipboard
+#
+#usage: [-h] [-s style] [-e extra_args]
+#
+#	long format arguemts:
+#	    --style      <style>
+#	    --extra      <extra-arguemts>
+#	    --help       print this message
+#
+#	style:
+#	    • gui        use “dmenu” as run launcher (default)
+#	    • tui        use “fzf” instead
+#
+#	extra:
+#	    • specify extra arguments to the run launcher (dmenu or fzf)
+#
+#	running without any arguments:
+#	    • the default behavior of the script is to use dmenu as default launcher
+#
+#EOF
+#}
+## }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+#		-s|--style)
+#			style="${2}"
+#			shift
+#			;;
+		-i|--input)
+			images="${2}"
+			shift
+			;;
+#		-h|--help)
+#			help
+#			exit 0
+#			;;
+		*)
+			if [ -f "${1}" ]; then
+				echo "parsing.. [${1}]"
+				images=" ${images} ${1} "
+			else
+				echo "Unknown parameter passed: ${1}"
+				exit 1
+			fi
+			;;
+	esac
+	shift
+done
+# }}}
+# notification function {{{
+notify() {
+	summary="${1}"
+	if [ -z "${2}" ] || [ "${2}" = 1 ] || [ "${2}" = 2 ] || [ "${2}" = 3 ]; then
+		case ${2} in
+			1) mode=low ;;
+			2) mode=normal ;;
+			3) mode=critical ;;
+			*) mode=normal ;;
+		esac
+#		msgbody="${3}"
+	else
+		case ${3} in
+			1) mode=low ;;
+			2) mode=normal ;;
+			3) mode=critical ;;
+			*) mode=normal ;;
+		esac
+		msgbody="${2}"
+	fi
+
+	if [ ${mode} = 'critical' ]; then
+		iferror="stderr"
+#		icon='error'
+	else
+		iferror="stdout"
+	fi
+
+	if [ -n "${icon}" ]; then
+		noticon="-i ${icon}"
+	fi
+
+	if [ "${style}" = 'tui' ]; then
+		printf '[%s] %s\n' "${summary}" "${msgbody}" "${iferror}"
+	elif [ -z "${DISPLAY}" ]; then
+		echo "${@}" >/dev/null 2>&1
+	else
+		notify-send -a "${prompt}" -u ${mode} ${noticon} \
+			"${summary}" "${msgbody}" 2>/dev/null
+		printf '[%s] %s\n' "${summary}" "${msgbody}" >/dev/${iferror}
+	fi
+}
+# }}}
+
+## conversion
+convert -append ${images} screenshots_merged_${stamp}.png >/dev/null 2>&1
+
+if [ $? -eq 0 ]; then
+	printf '✓\n'
+else
+	printf '×\n'
+fi
+
+## send notification if it was successful
+if [ "${?}" -eq 0 ]; then
+	if [ -f "screenshots_merged_${stamp}.png" ]; then
+		notify 'Images merged' \
+			"Output: ${PWD}/screenshots_merged_${stamp}.png"
+	fi
+fi

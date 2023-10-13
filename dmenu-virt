@@ -1,0 +1,46 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+set -e
+
+notify() {
+	notify-send -a dmvirt -i qemu-system "${1}" "${2}"
+	printf '%s: %s\n' "${1}" "${2}" 1>&2
+}
+
+path="${HOME}/vm/qemu"
+
+patched=$(dmenu -v | grep -c 'hos-patched')
+if [ ${patched} -eq 1 ]; then
+	patches="-c -bw 4 -g 1 -l 11"
+fi
+prompt="virt"
+runner="dmenu \
+		-i \
+		${patches} \
+		-p ${prompt} \
+		${@} \
+		"
+
+list=$(find ${path} -maxdepth 1 -type d \
+	| grep -v "${path}$\|manage.sh" \
+	| awk -F '/' '{print $NF;}')
+
+vm_name=$(echo ${list} | tr ' ' '\n' | ${runner})
+
+options=$(find ${path}/${vm_name} -maxdepth 1 -type f -perm /u+x \
+	| awk -F '/' '{print $NF;}')
+
+if [ -z "${options}" ]; then
+	notify "${vm_name}" "No executable found. Nothing to do here"
+	exit 1
+fi
+
+run=$(echo ${options} | tr ' ' '\n' | ${runner} -p ${vm_name}-${prompt})
+
+${path}/${vm_name}/${run}

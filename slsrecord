@@ -1,0 +1,26 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+set -e
+
+# screen_record using ffmpeg {{{
+screen_record() {
+	ffmpeg_recordcount=$(ps aux | grep '\<ffmpeg\>' | grep "${HOME}/screen/record" -c)
+	if [ "${ffmpeg_recordcount}" -eq 1 ]; then
+		ffmpeg_record='[r]'
+	elif [ "${ffmpeg_recordcount}" -gt 1 ]; then
+		ffmpeg_record="[r(${ffmpeg_recordcount})]"
+	else
+		#notify-send -u normal "simple test is here"
+		ffmpeg_record=""
+	fi
+	printf '%s' ${ffmpeg_record}
+}
+# }}}
+
+screen_record

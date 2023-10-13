@@ -1,0 +1,38 @@
+#!/bin/sh
+#  ____     _ 
+# |  _ \   | |
+# | |_) |  | |
+# |  __/ |_| |
+# |_|   \___/ 
+#             
+
+# variables {{{
+dev='/sys/class/backlight/intel_backlight/'
+max=$(cat ${dev}/max_brightness)
+current=$(cat ${dev}/brightness)
+current_present=$(echo "${current} * 100 / ${max}" | bc)
+
+calculate=$(echo "${max} / 100 * ${choice}" | bc)
+
+prompt='brightness'
+# }}}
+# notify {{{
+notify() {
+	if [ -z "${2}" ]; then
+		body=''
+	else
+		body="${2}"
+	fi
+
+	if [ -z "${1}" ]; then
+		sum=''
+	else
+		sum="${1}"
+	fi
+
+	printf '### %s ###\n%s: %s\n' "${prompt}" "${sum}" "${body}"
+	notify-send -i display-brightness -a ${prompt} "${sum}" "${body}"
+}
+# }}}
+
+notify 'current' ${current_present}%
