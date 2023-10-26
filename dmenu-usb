@@ -11,7 +11,7 @@ set -e
 # Variables {{{
 prompt='usb'
 if [ "$(dmenu -v | grep -c 'hos-patched')" = 1 ]; then
-	patches="-c -bw 4"
+	patches="-c -bw 2"
 fi
 if [ "${EUID}" = '0' ]; then
 	deffont="-fn 'Liberation Mono'"

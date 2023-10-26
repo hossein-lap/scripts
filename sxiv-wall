@@ -6,11 +6,12 @@
 # |_|   \___/ 
 #             
 
-defpicdir="${HOME}/pic"
-presist_wall="${defpicdir}/.wall"
+defpicdir="${HOME}/pictures"
+presist_wall="${HOME}/.local/share/dwm/background"
 #script_name=$(echo ${0} | awk -F '/' '{print $NF;}')
 script_name="Wallpaper"
-runner="xwallpaper --no-randr --zoom"
+runner="xwallpaper --zoom"
+# runner="xwallpaper --no-randr --zoom"
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
 	patches='-c -g 1 -bw 2'
@@ -25,8 +26,8 @@ usage: ${script_name} [img] [dir] [-s <dir>] [-h] []
 	-r             rerun the xwallpaper command
 	-h             print this message
 	-s <dir>       random pic from <dir> as wallpaper
-	<img>          set the image as wallpaper
-	<dir>          show all the pictures from directory to choose from
+	-f <img>       set the image as wallpaper
+	-d <dir>       show all the pictures from directory to choose from
 	<no args>      choose a picture from "${defpicdir}"
 EOF
 }
@@ -37,10 +38,27 @@ notif_send() {
 	fi
 }
 
+wall_set() {
+	if [ -r "${1}" ]; then
+		ww="$(echo "${1}" | awk -F '/' '{print $NF;}')"
+		${runner} "${1}"
+		if [ -z "${2}" ]; then
+			cp -fv "${1}" ${presist_wall}
+		fi
+		wal -c
+		wal -n -s -i "${presist_wall}"
+		xrdb ~/.Xresources
+		notif_send "Wallpaper changed" "${ww}"
+		for i in $(pidof st tabbed dwm); do kill -s USR1 "${i}"; done
+		exit 0
+	else
+		exit 1
+	fi
+}
+
 shuf_wall() {
 	thewall=$(ls "${1}"/*.{jpg,png} | shuf | head -1)
-	${runner} "${thewall}"
-	cp -f "${thewall}" ${presist_wall}
+	wall_set "${thewall}"
 	ww="$(echo "${thewall}" | awk -F '/' '{print $NF;}')"
 	if [ $? -eq 0 ]; then
 		notif_send "Wallpaper changed" "${ww}"
@@ -53,8 +71,7 @@ shuf_wall() {
 dir_wall() {
 	thewall=$(${viewer} "${1}")
 	if [ -f "${thewall}" ]; then
-		${runner} "${thewall}"
-		cp -f "${thewall}" ${presist_wall}
+		wall_set "${thewall}"
 		ww="$(echo "${thewall}" | awk -F '/' '{print $NF;}')"
 		if [ $? -eq 0 ]; then
 			notif_send "Wallpaper changed" "${ww}"
@@ -65,22 +82,10 @@ dir_wall() {
 	fi
 }
 
-set_wall() {
-	ww="$(echo "${1}" | awk -F '/' '{print $NF;}')"
-	if [ -n "${ww}" ]; then
-		${runner} "${1}"
-		cp -f "${1}" ${presist_wall}
-		notif_send "Wallpaper changed" "${ww}"
-		exit 0
-	else
-		exit 1
-	fi
-}
-
 dir_wall_intractive() {
 	thewall=$(${viewer} "${1}")
 	if [ -f "${thewall}" ]; then
-		${runner} "${thewall}"
+		wall_set "${thewall}"
 		if [ $? -eq 0 ]; then
 			cp -f "${thewall}" ${presist_wall}
 			ww="$(echo "${thewall}" | awk -F '/' '{print $NF;}')"
@@ -105,7 +110,7 @@ choose_wall() {
 	else
 		dir_wall_intractive "${locwalldir}/${selected_dir}"
 	fi
-#	set_wall "${wall}"
+#	wall_set "${wall}"
 }
 
 #if [ "${1}" = '-h' ]; then
@@ -118,16 +123,18 @@ choose_wall() {
 #elif [ -d "${1}" ]; then
 #	dir_wall ${1}
 #elif [ -f "${1}" ]; then
-#	set_wall "${1}"
+#	wall_set "${1}"
 #else
 #	choose_wall
 #fi
 
+# start {{{
 case "${1}" in
 	-h) help; exit 0 ;;
 	-s) shuf_wall "${2}" ;;
-	-r) ${runner} ${presist_wall} ;;
-	-d) dir_wall "${1}" ;;
-	-f) set_wall "${1}" ;;
+	-r) wall_set ${presist_wall} ;;
+	-d) dir_wall "${2}" ;;
+	-f) wall_set "${2}" ;;
 	*) choose_wall ;;
 esac
+# }}}

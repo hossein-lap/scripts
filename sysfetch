@@ -104,8 +104,8 @@ done
 
 ## Ascii art arms
 #codename=$(lsb_release -i | awk '{print $NF;}')
-codename='void'
-#codename=$(awk -F '=' '/^ID=/ {print $NF;}' /etc/os-release)
+# codename='void'
+codename=$(awk -F '=' '/^ID=/ {print $NF;}' /etc/os-release)
 
 case $codename in
 [vV]oid)

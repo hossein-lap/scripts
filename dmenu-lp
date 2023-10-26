@@ -11,7 +11,7 @@
 script_name=$(echo $0 | awk -F '/' '{print $NF;}')
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches='-c -bw 4'
+	patches='-c -bw 2 -r'
 fi
 dmenu="dmenu \
 		-i \

@@ -10,14 +10,14 @@ set -e
 
 # screen_record using ffmpeg {{{
 screen_record() {
-	ffmpeg_recordcount=$(ps aux | grep '\<ffmpeg\>' | grep "${HOME}/screen/record" -c)
+	ffmpeg_recordcount=$(ps aux | grep '\<ffmpeg\>' | grep "${HOME}/videos/screen-record" -c)
 	if [ "${ffmpeg_recordcount}" -eq 1 ]; then
-		ffmpeg_record='[r]'
+		ffmpeg_record='rec '
 	elif [ "${ffmpeg_recordcount}" -gt 1 ]; then
-		ffmpeg_record="[r(${ffmpeg_recordcount})]"
+		ffmpeg_record="rec(${ffmpeg_recordcount}) "
 	else
-		#notify-send -u normal "simple test is here"
-		ffmpeg_record=""
+		notify-send -u normal "simple test is here"
+		ffmpeg_record="-"
 	fi
 	printf '%s' ${ffmpeg_record}
 }

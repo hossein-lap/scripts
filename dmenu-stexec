@@ -26,7 +26,7 @@ prompt='exec'
 
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
-	patches="-c -bw 4 -g 1"
+	patches="-c -bw 2 -g 1 -r"
 fi
 
 runner="dmenu -p ${prompt} -l 15 ${patches} ${@}"

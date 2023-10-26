@@ -1,40 +1,30 @@
 #!/usr/bin/env bash
 
-# list=$(echo tmp dev w  | fzf)
-# work=$(printf '%s\n' \
-# 		"active" \
-# 		"regular" \
-# 		"special" \
-# 		"tmp" \
-# 	| fzf )
+fzf="fzf -i --border=sharp --prompt=: --info=inline --header-first"
 
-session=$({ find ~/dev/primejade/ ~/w ~/documents/ -maxdepth 2 -mindepth 2 -type d; find ~/dev/hossein-lap/ ~ -maxdepth 1 -mindepth 1 -type d; } | fzf)
+session=$({ \
+	find \
+		~/dev/primejade/ ~/w ~/documents/ ~ \
+		-maxdepth 2 \
+		-mindepth 1 \
+		-type d; \
+	find ~/dev/hossein-lap/ \
+		-maxdepth 1 \
+		-mindepth 1 \
+		-type d; \
+	tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}'; \
+	} | grep -v '\.git' | ${fzf})
 
-# [ -z "${work}" ] && exit 10
-# [ "${work}" = 'active' ] && search=1
-#
-# if [ "${search}" = '1' ]; then
-# 	session=$(tmux ls | awk -F ':' '{print $1;}' | fzf --preview 'tmux list-windows -t {}')
-# else
-# 	case ${work} in
-# 		special)
-# 			watch="${HOME}/dev/primejade ${HOME}/w"
-# 			depths="-maxdepth 2 -mindepth 2"
-# 			;;
-# 		tmp)
-# 			[ ! -d /tmp/tmp ] && mkdir /tmp/tmp
-# 			watch="/tmp/tmp"
-# 			depths="-maxdepth 1 -mindepth 1"
-# 			;;
-# 		*)
-# 			watch="${HOME} ${HOME}/dev/hossein-lap"
-# 			depths="-maxdepth 1 -mindepth 1"
-# 			;;
-# 	esac
-# 	session=$(find ${watch} ${depths} -type d | fzf --preview 'exa --icons -l {}')
-# fi
-
-session_name=$(basename ${session} | tr . _)
+if [ -z "${session}" ]; then
+	exit 17
+else
+	inside=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}' | grep -c ${session})
+	if [ "${inside}" != '0' ]; then
+		session_name=${session}
+	else
+		session_name=$(basename $(dirname ${session}))/$(basename ${session} | tr . _)
+	fi
+fi
 
 if [ -n "${session}" ]; then
 	if ! tmux has-session -t "${session_name}" 2>/dev/null; then
@@ -46,4 +36,6 @@ if [ -n "${session}" ]; then
 	else
 		tmux switchc -t ${session_name}
 	fi
+else
+	exit 34
 fi

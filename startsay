@@ -8,8 +8,8 @@
 
 set -e
 
-pkg="xbps-query -l"
-# pkg="pacman -Q"
+# pkg="xbps-query -l"
+pkg="pacman -Q"
 
 mem=$(free -h | grep ^Mem | awk '{print $3"/"$2;}')
 pkgs=$($pkg | wc -l)

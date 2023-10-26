@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# import -screen root /tmp/test.png && nsxiv /tmp/test.png
+import -window root /tmp/test.png && nsxiv /tmp/test.png

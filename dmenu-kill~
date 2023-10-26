@@ -9,7 +9,7 @@
 # variables {{{
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches='-c -bw 4 -vf'
+	patches='-c -bw 2 -vf'
 fi
 prompt='kill'
 # }}}

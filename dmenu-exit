@@ -45,7 +45,7 @@ fi
 # variables {{{
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 2 -l 8"
+	patches="-c -bw 2 -l 8 -r"
 else
 	prompt="${prompt}[${wm}]"
 fi
@@ -126,7 +126,8 @@ if [ ${double_check} = 'yes' ]; then
 #		reboot) sudo -A reboot ;;
 		lock) slock & sleep .5; xset dpms force off ;;
 		exit) sleep .5; kill -TERM $(pgrep xinit -u $USER) ;;
-		renew) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
+		renew) sleep .5; kill -s USR1 "$(pgrep ${wm} -u $USER)" ;;
+		# renew) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
 		screen-off) sleep .5; xset dpms force off ;;
 		hibernate) slock ${ctl} hibernate -i ;;
 		sleep) slock ${ctl} suspend -i ;;

@@ -13,7 +13,7 @@ ffmpegcount=$(pgrep -c ffmpeg)
 script_name=$(echo $0 | awk -F '/' '{print $NF;}')
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 4 -g 1"
+	patches="-c -bw 2 -g 1 -r"
 fi
 dmenu="dmenu \
 		-i \
@@ -48,7 +48,7 @@ extention="mkv"
 audioCodec="aac"
 framerate="30"
 videoCodec="libx264"
-Directory="${HOME}/screen/record"
+Directory="${HOME}/videos/screen-record"
 Name=$(date +%y%m%d_%H%M%S)
 
 # Kill {{{

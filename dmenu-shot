@@ -28,7 +28,7 @@ notify() {
 # variables {{{
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
-	patches='-c -g 2 -bw 4 -l 2'
+	patches='-c -g 2 -bw 2 -l 2 -r'
 fi
 
 directory="${HOME}/pictures/screenshots"

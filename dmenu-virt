@@ -17,7 +17,7 @@ path="${HOME}/vm/qemu"
 
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 4 -g 1 -l 11"
+	patches="-c -bw 2 -g 1 -l 11 -r"
 fi
 prompt="virt"
 runner="dmenu \

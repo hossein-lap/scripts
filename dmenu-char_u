@@ -9,7 +9,7 @@
 # varaibles {{{
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 4 -g 1 -l 6"
+	patches="-c -bw 2 -g 1 -l 6"
 fi
 path="${HOME}/dev/hossein-lap/workflow/local/chars/unicode.txt"
 prompt='unicode'

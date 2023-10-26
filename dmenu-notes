@@ -10,7 +10,7 @@
 icon="note"
 path="${HOME}/doc/notes"
 if [ "$(dmenu -v | grep -c hos)" = '1' ]; then
-	patches="-g 2 -l 2 -c -bw 4"
+	patches="-g 2 -l 2 -c -bw 2"
 fi
 prompt="notes"
 date=$(date '+%Y-%m-%d')
@@ -103,7 +103,7 @@ new_note() {
 # }}}
 # edit notes {{{
 edit_note() {
-	patches="-l 15"
+	patches="-l 15 -r"
 	loc="${path}/md"
 	thenote=$(ls -r "${loc}" | ${menu} ${patches})
 

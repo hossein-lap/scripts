@@ -1,0 +1,26 @@
+#!/bin/sh
+
+pached=$(dmenu -v | grep -c 'hos-patched')
+if [ ${pached} -eq 1 ]; then
+	patches='-c -g 3 -bw 2 -l 1'
+fi
+prompt='shot'
+runner="dmenu \
+		-p ${prompt} \
+		-i \
+		${patches} \
+		${@} \
+		"
+
+menu=$(printf '%s\n' st tabbed dwm | ${runner})
+
+xrdb ~/.Xresources
+
+for i in ${menu}; do
+	echo ${menu}
+	echo ${i}
+	for j in $(pidof ${i}); do
+		echo ${j}
+		kill -s USR1 ${j}
+	done
+done
