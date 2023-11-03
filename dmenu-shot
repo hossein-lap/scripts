@@ -16,7 +16,7 @@ notify() {
 	esac
 
 	notify-send -u ${mode} -a ${prompt} \
-		-i accessories-screenshot "${1} ${$}" "${2}"
+		-i accessories-screenshot "${1} [${$}]" "${2}"
 
 	if [ -z "${2}" ]; then
 		printf '%s\n' "${1}"
@@ -68,48 +68,36 @@ case ${choice} in
 		exit 0
 		;;
 	whole)
-#		# scrot (broken for dual-monitor) {{{
-		#Monitor=":0.0+0,1080"
-		#${scrot} -p ${quality} \
-		#	${mon} 'shots-%y%m%d_%H%M%S_$wx$h.png' \
-		#	-e "mv \$f ${directory}/; r.sh nsxiv ${directory}/\$f; printf ${directory}/\$f | xclip -selection c "
-#		# }}}
-		# vars {{{
-		DemResTmp=$(xdpyinfo | grep dimensions | awk '{print $2;}')
-		DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
-		DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
-
-#		if [ -z "${#}" ]; then
-			monitor=$(printf '%s\n' '↓' '↑' '↕' '→' \
-					| ${runner} -p monitor)
-#		fi
-
-		case ${monitor} in
-			'↑') DemRes="-g ${DemResX}x${DemResY}+0+0" ;;
-			'↓') DemRes="-g ${DemResX}x${DemResY}+0+${DemResY}" ;;
-			'↕') DemRes="-g ${DemResTmp}" ;;
-			'—') notify "Shot cancelled" '' 1; exit 0; ;;
-			*) notify "Shot cancelled" '' 1; exit 1; ;;
-		esac
-		# }}}
-		${shooter} ${DemRes} ${name}
+		# # scrot (broken for dual-monitor) {{{
+		# 	Monitor=":0.0+0,1080"
+		# 	${scrot} -p ${quality} \
+		# 	${mon} 'shots-%y%m%d_%H%M%S_$wx$h.png' \
+		# 	-e "mv \$f ${directory}/; r.sh nsxiv ${directory}/\$f; printf ${directory}/\$f | xclip -selection c "
+		# # }}}
+		# # vars {{{
+		# DemResTmp=$(xdpyinfo | grep dimensions | awk '{print $2;}')
+		# DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
+		# DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
+		#
+		# monitor=$(printf '%s\n' '↓' '↑' '↕' '→' \
+		# 		| ${runner} -p monitor)
+		#
+		# case ${monitor} in
+		# 	'↑') DemRes="-geometry ${DemResX}x${DemResY}+0+0" ;;
+		# 	'↓') DemRes="-crop ${DemResX}x${DemResY}+0+${DemResY}" ;;
+		# 	'↕') DemRes="-geometry ${DemResTmp}" ;;
+		# 	'—') notify "Shot cancelled" '' 1; exit 0; ;;
+		# 	*) notify "Shot cancelled" '' 1; exit 1; ;;
+		# esac
+		# # }}}
+		# ${shooter} ${DemRes} ${name}
+		import -screen -window root ${name}
 		;;
 	active)
-#		# scrot (broken for dual-monitor) {{{
-#		${scrot} -p ${quality} \
-#			${mon} -u 'shots-%y%m%d_%H%M%S_$wx$h.png' \
-#			-e "mv \$f ${directory}/; r.sh nsxiv ${directory}/\$f; printf ${directory}/\$f | xclip -selection c "
-#		# }}}
-		${shooter} -i $(xdotool getactivewindow) ${name}
-		imtrim.sh ${name}
+		import -screen -window $(xdotool getactivewindow) ${name}
 		;;
 	select)
-#		# scrot (broken for dual-monitor) {{{
-#		${scrot} -p ${quality} \
-#			${mon} -s 'shots-%y%m%d_%H%M%S_$wx$h.png' \
-#			-e "mv \$f ${directory}/; r.sh nsxiv ${directory}/\$f; printf ${directory}/\$f | xclip -selection c "
-#		# }}}
-		${shooter} -s ${name} 2>/dev/null
+		import ${name}
 		;;
 	*)
 		notify "Shot cancelled" '' 1
@@ -117,10 +105,10 @@ case ${choice} in
 		;;
 esac
 
-if [ -f ${name} ]; then
+if [ -f "${name}" ]; then
 	notify "Screenshot taken" "${name}"
-	nsxiv "${name}" &
-	echo ${name} | tr -d '\n' | xclip -selection clipboard
+	echo "${name}" | tr -d '\n' | xclip -selection clipboard
+	nsxiv "${name}"
 else
 	notify "Shot cancelled" \
 		'By keystroke or right-click' 1

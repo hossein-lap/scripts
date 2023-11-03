@@ -8,9 +8,9 @@
 
 # varaibles {{{
 icon="note"
-path="${HOME}/doc/notes"
+path="${HOME}/documents/notes"
 if [ "$(dmenu -v | grep -c hos)" = '1' ]; then
-	patches="-g 2 -l 2 -c -bw 2"
+	patches="-g 2 -l 3 -c -bw 2"
 fi
 prompt="notes"
 date=$(date '+%Y-%m-%d')
@@ -24,9 +24,9 @@ pdfview="zathura"
 # }}}
 # launcher {{{
 menu="dmenu -l 9 -p ${prompt} ${patches} ${@}"
-st="st -T note"
-font="Source Code Pro:size=16"
-title="note"
+st="st"
+# font="-f Liberation Mono:size=16"
+title="Terminal"
 # }}}
 # notification function {{{
 notify() {
@@ -76,14 +76,12 @@ new_note() {
 		printf '%s\n' \
 			"# Notes for ${date}" \
 			> "${mdname}"
-#			".SH" ".LG" ".LG" \
-#			"Note for ${date}" \
+			# ".SH" ".LG" ".LG" \
+			# "Note for ${date}" \
 	fi
 
-	st -t ${title} -s 7 -f "${font}" \
+	st -t ${title} "${font}" \
 		nvim \
-		-c "lua CurrentColorscheme = 'paramount'" \
-		-c "lua ColorThem(CurrentColorscheme)" \
 		-c "set ls=0" \
 		-c "norm Go" \
 		-c "norm Go## ${time}" \
@@ -108,11 +106,9 @@ edit_note() {
 	thenote=$(ls -r "${loc}" | ${menu} ${patches})
 
 	if [ "${thenote}" != '' ]; then
-		st -t ${title} -s 7 -f "${font}" \
+		st -t ${title} "${font}" \
 			nvim \
 			-c "set ls=0" \
-			-c "lua CurrentColorscheme = 'paramount'" \
-			-c "lua ColorThem(CurrentColorscheme)" \
 			${loc}/${thenote}
 	fi
 }
@@ -141,7 +137,7 @@ build_note() {
 #		printf '%s\n\t%s\n\t%s\n\t%s\n' "${src}" "${ms}" "${pdf}" "${html}"
 		notify "building.." "$(echo ${1} | sed 's/\.md//')"
 
-		pandoc -L ~/.config/pandoc/filters/tex-codeblock-en.lua "${src}" -o "${pdf}"
+		pandoc -t ms "${src}" -o "${pdf}"
 #		lowdown -Thtml "${src}" > "${html}"
 #		lowdown --nroff-no-numbered --nroff-no-groff -Tms "${src}" > "${ms}"
 #		groff -mspdf -keUs -Tpdf "${ms}" > "${pdf}"
@@ -166,6 +162,26 @@ build_wrapper() {
 	fi
 }
 # }}}
+# todo list {{{
+todo_list() {
+	name="${path}/todo-list"
+	st -t ${title} \
+		nvim \
+			-c "set ls=0" \
+			-c 'norm Go' \
+			-c 'norm Go' \
+			-c 'norm zz' \
+			-c 'norm I#' \
+			-c 'norm A  ' \
+			-c 'startinsert' \
+		"${name}.md"
+	
+	pandoc \
+		--defaults ~/.config/pandoc/defaults/groff/groff.yaml \
+		-t ms \
+		${name}.md -o ${name}.pdf
+}
+# }}}
 
 dirmk "${path}"
 dirmk "${path}/md"
@@ -174,12 +190,13 @@ dirmk "${path}/pdf"
 #dirmk "${path}/ps"
 dirmk "${path}/html"
 
-choice=$(printf '%s\n' 'view' 'build' 'new' 'edit' | ${menu})
+choice=$(printf '%s\n' 'view' 'build' 'todo' 'new' 'edit' | ${menu})
 
 case ${choice} in
 	build) build_wrapper ;;
 	new) new_note ;;
 	edit) edit_note ;;
 	view) view_note ;;
-	*) notify 'unknown behavior' 'wanted to cancel?!'; exit 2 ;;
+	todo) todo_list ;;
+	*) notify 'unknown behavior' 'wanted to cancel?!'; exit 201 ;;
 esac

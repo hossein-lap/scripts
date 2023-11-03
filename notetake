@@ -8,76 +8,75 @@
 
 set -e
 
-XDG_DOCUMENTS_DIR="${HOME}/documents"
+dirname_daily="${HOME}/documents/notes/daily"
 
 dircheck() {
 	[ ! -d "${1}" ] && mkdir -p "${1}"
 }
 
-## Markdown {{{
-#note_take_markdown() {
-	#dirname=${XDG_DOCUMENTS_DIR}
-	#TheDate=$(date +%Y-%m-%d)
+# # Markdown {{{
+# note_take_markdown() {
+# 	TheDate=$(date +%Y-%m-%d)
 #
-	#dircheck "~/${dirname}/"
-	#dircheck "~/${dirname}/md/"
-	#dircheck "~/${dirname}/pdf/"
-	##dircheck "~/${dirname}/html/"
+# 	dircheck "${dirname}/"
+# 	dircheck "${dirname}/md/"
+# 	dircheck "${dirname}/pdf/"
+# 	#dircheck "${dirname}/html/"
 #
-	#NoteFilename="${dirname}/md/note_${TheDate}.md"
+# 	NoteFilename="${dirname}/md/note_${TheDate}.md"
 #
-	#if [ ! -f "${NoteFilename}" ]; then
+# 	if [ ! -f "${NoteFilename}" ]; then
 #
-		##printf '%s\n'\
-			##".SH" ".LG" ".LG" \
-			##"Note for ${TheDate}" \
-			##> "${NoteFilename}"
+# 		#printf '%s\n'\
+# 			#".SH" ".LG" ".LG" \
+# 			#"Note for ${TheDate}" \
+# 			#> "${NoteFilename}"
 #
-		#printf '%s\n' "# Note for ${TheDate}" > "${NoteFilename}"
-	#fi
+# 		printf '%s\n' "# Note for ${TheDate}" > "${NoteFilename}"
+# 	fi
 #
-	#vim -c "norm Go" \
-		#-c "norm Go## $(date +%H:%M)" \
-		#-c "norm Go" \
-		#-c "norm Go" \
-		#-c "norm zz" "${NoteFilename}"
-#}
-## }}}
-# Groff {{{
-note_take_groff() {
-	dirname=${XDG_DOCUMENTS_DIR}/notes/daily
-	TheDate=$(date +%Y-%m-%d)
+# 	vim -c "norm Go" \
+# 		-c "norm Go## $(date +%H:%M)" \
+# 		-c "norm Go" \
+# 		-c "norm Go" \
+# 		-c "norm zz" "${NoteFilename}"
+# }
+# # }}}
+# # Groff {{{
+# note_take_groff() {
+# 	dirname=${XDG_DOCUMENTS_DIR}/notes/daily
+# 	TheDate=$(date +%Y-%m-%d)
+#
+# 	if [ ! -d "${dirname}/" ]; then
+# 		mkdir -p ~/${dirname}/
+# 	fi
+# 	if [ ! -d "${dirname}/ms" ]; then
+# 		mkdir -p ~/${dirname}/ms/
+# 	fi
+# 	if [ ! -d "${dirname}/pdf" ]; then
+# 		mkdir -p ~/${dirname}/pdf/
+# 	fi
+# 	if [ ! -d "${dirname}/html" ]; then
+# 		mkdir -p ~/${dirname}/html/
+# 	fi
+#
+# 	NoteFilename="${dirname}/ms/note_${TheDate}.ms"
+#
+# 	if [ ! -f "${NoteFilename}" ]; then
+# 		printf '%s\n'\
+# 			".SH" ".LG" ".LG" \
+# 			"Note for ${TheDate}" \
+# 			> "${NoteFilename}"
+# 	fi
+#
+# 	vim \
+# 		-c "norm Go.SH" \
+# 		-c "norm Go$(date +%H:%M)" \
+# 		-c "norm Go.PP" \
+# 		-c "norm Go" \
+# 		-c "norm zz" "${NoteFilename}"
+# }
+# # }}}
 
-	if [ ! -d "${dirname}/" ]; then
-		mkdir -p ~/${dirname}/
-	fi
-	if [ ! -d "${dirname}/ms" ]; then
-		mkdir -p ~/${dirname}/ms/
-	fi
-	if [ ! -d "${dirname}/pdf" ]; then
-		mkdir -p ~/${dirname}/pdf/
-	fi
-	if [ ! -d "${dirname}/html" ]; then
-		mkdir -p ~/${dirname}/html/
-	fi
-
-	NoteFilename="${dirname}/ms/note_${TheDate}.ms"
-
-	if [ ! -f "${NoteFilename}" ]; then
-		printf '%s\n'\
-			".SH" ".LG" ".LG" \
-			"Note for ${TheDate}" \
-			> "${NoteFilename}"
-	fi
-
-	vim \
-		-c "norm Go.SH" \
-		-c "norm Go$(date +%H:%M)" \
-		-c "norm Go.PP" \
-		-c "norm Go" \
-		-c "norm zz" "${NoteFilename}"
-}
-# }}}
-
-#note_take_markdown "$1"
-notebuild "$1"
+# note_take_markdown "$1"
+# notebuild "$1"
