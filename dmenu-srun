@@ -30,6 +30,6 @@ script=$(find ${path} -mindepth 1 -maxdepth 1 -type f,l \
 if [ -z "${script}" ]; then
 	exit 31
 else
-	sh ${path}/$script "${@}"
+	${path}/$script "${@}"
 fi
 

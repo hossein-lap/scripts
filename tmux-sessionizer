@@ -22,8 +22,9 @@ else
 	if [ "${inside}" != '0' ]; then
 		session_name=${session}
 	else
-		session_name=$(basename $(dirname ${session}))/$(basename ${session} | tr . _)
+		session_name=$(basename $(dirname ${session}))/$(basename ${session})
 	fi
+	session_name=$(echo "${session_name}" | tr . _)
 fi
 
 if [ -n "${session}" ]; then

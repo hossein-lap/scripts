@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#  _  _ ___
+# | || | __| P
+# | __ | _|
+# |_||_|___| J
+#
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: round the borders
+
+usage: [-h] [-i input] [-o output]
+
+   • arguemts:
+       -i --input      intput x
+       -o --output     output y
+       -r --round      border rounding percentage
+       -e --args       extra args (to pass to the launcher)
+       -h --help       print this message
+
+   • example:
+       ${prompt} -i in -o out
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+	case ${1} in
+		-i|--input)
+			input="${2}"
+			shift
+			;;
+		-o|--output)
+			output="${2}"
+			shift
+			;;
+		-h|--help)
+			help
+			exit 0
+			;;
+		-r|--round)
+			persent="${2}"
+			shift
+			;;
+		-a|--args)
+			args="${2}"
+			shift
+			;;
+		*)
+			echo "Unknown parameter passed: ${1}"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+# checking args {{{
+if [ -z "${input}" ]; then
+	printf '%s\n\n' "No input is specified" 1>&2
+	help
+	exit 1
+fi
+
+if [ -z "${output}" ]; then
+	printf '%s\n\n' "No output is specified" 1>&2
+	help
+	exit 2
+fi
+
+if [ -z "${persent}" ]; then
+	persent=25
+fi
+# }}}
+# }}}
+
+sqrp="${persent}"
+
+## get dementions:
+# identify "${input}" | awk '{print $3;}'
+dxmax=$(identify ${input} \
+	| awk '{print $3;}' \
+	| awk -F 'x' '{print $1;}')
+
+dymax=$(identify ${input} \
+	| awk '{print $3;}' \
+	| awk -F 'x' '{print $2;}')
+
+magick \
+	${input} \( \
+		+clone \
+		-threshold 100% \
+		-fill white \
+		-draw \
+			"roundrectangle 0,0 ${dxmax},${dymax} ${sqrp},${sqrp}" \
+	\) \
+	-channel-fx '| gray=>alpha'\
+	${output}
+

@@ -27,14 +27,14 @@ notify() {
 # }}}
 # variables {{{
 pached=$(dmenu -v | grep -c 'hos-patched')
-if [ ${pached} -eq 1 ]; then
-	patches='-c -g 2 -bw 2 -l 2 -r'
-fi
+# if [ ${pached} -eq 1 ]; then
+# 	patches='-c -g 2 -bw 2 -l 2 -r'
+# fi
 
 directory="${HOME}/pictures/screenshots"
 stamp=$(date '+%y%m%d_%H%M%S')
 name="${directory}/shot-${stamp}.png"
-prompt='shot'
+prompt='dmenu-shot'
 runner="dmenu \
 		-p ${prompt} \
 		-i \
@@ -108,7 +108,9 @@ esac
 if [ -f "${name}" ]; then
 	notify "Screenshot taken" "${name}"
 	echo "${name}" | tr -d '\n' | xclip -selection clipboard
-	nsxiv "${name}"
+	short_name=$(echo "${name}" | xargs basename)
+	do_open=$(echo "No\nYes" | dmenu -p "Open ${short_name}?" -i)
+	[ "${do_open}" = 'Yes' ] && nsxiv "${name}"
 else
 	notify "Shot cancelled" \
 		'By keystroke or right-click' 1

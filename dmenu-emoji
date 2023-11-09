@@ -7,19 +7,34 @@
 #             
 
 # varaibles {{{
-patched=$(dmenu -v | grep -c 'hos-patched')
-if [ ${patched} -eq 1 ]; then
-	patches="-bw 0 -g 2 -l 6"
+path="${HOME}/dev/hossein-lap/workflow/local/chars/emoji"
+prompt='dmenu-emoji'
+#list=$(printf '%s\n' \
+#	😁 🤣 😂 😅 🥰 😍 \
+#	😘 😙 😎 🧐 🥺 😉 \
+#	🤔 😐 😑 😶 🫥 😏 \
+#	😒 🙄 😌 🤤 😋 🤐 \
+#	🤨 😡 😠 🤬 😈 👿 \
+#	🖐️ 👌 🤌 ✌️ 🤟 🤘 \
+#	🤙 👍 👎 ☝️ 👊 🧠 \
+#	🫀 💋 🧡 💛 ❤️ 💔 \
+#	🙈 💀 💩 🤡 👻 ☕ \
+#	🌹 🌼 🥀 🌺 🌻 🍺 \
+#	🍻 🥂 🥃 🍷 🍸 🔥 \
+#	👑 ♠️ ♥️ ♦️ ♣️ 🃏 \
+#	🚭 🚫 ⚠️ 🚬 📎
+#)
+patched=$(dmenu -v | grep -c hos)
+if [ "${patched}" -eq 1 ]; then
+	patches="-g 2 -bw 0"
 fi
-path="${HOME}/dev/hossein-lap/workflow/local/chars/fontawesome.txt"
-prompt='font-awesome'
 style=""
 eargs=""
 # }}}
 # help function {{{
 help() {
 cat << EOF
-${prompt}: select and copy font-awesome icon(s) to clipboard
+${prompt}: select and copy emoji(s) to clipboard
 
 Usage: [-h] [-s style] [-a arguments]
 
@@ -115,8 +130,9 @@ notify() {
 }
 # }}}
 # launch function {{{
-choose_fontawesome() {
-	chosen=$(${runner} < "${path}")
+choose_emoji() {
+#	chosen=$(${runner} < "${path}")
+	chosen=$(grep -v '^#' "${path}" | ${runner})
 
 	if [ -n "${chosen}" ]; then
 		clipit=$(printf "${chosen}" \
@@ -130,4 +146,4 @@ choose_fontawesome() {
 }
 # }}}
 
-choose_fontawesome
+choose_emoji

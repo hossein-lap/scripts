@@ -9,17 +9,17 @@
 # varaibles {{{
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 2 -g 1 -l 6"
+	patches="-bw 0 -g 2"
 fi
-path="${HOME}/dev/hossein-lap/workflow/local/chars/unicode.txt"
-prompt='unicode'
+path="${HOME}/dev/hossein-lap/workflow/local/chars/nerdfont.txt"
+prompt='dmenu-nerdfont'
 style=""
 eargs=""
 # }}}
 # help function {{{
 help() {
 cat << EOF
-${prompt}: select and copy unicode character(s) to clipboard
+${prompt}: select and copy nerdfont icon(s) to clipboard
 
 Usage: [-h] [-s style] [-a arguments]
 
@@ -115,7 +115,7 @@ notify() {
 }
 # }}}
 # launch function {{{
-choose_unicode() {
+choose_nerdfont() {
 	chosen=$(${runner} < "${path}")
 
 	if [ -n "${chosen}" ]; then
@@ -130,5 +130,4 @@ choose_unicode() {
 }
 # }}}
 
-choose_unicode
-
+choose_nerdfont

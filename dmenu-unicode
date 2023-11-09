@@ -7,34 +7,19 @@
 #             
 
 # varaibles {{{
-path="${HOME}/dev/hossein-lap/workflow/local/chars/emoji"
-prompt='emoji'
-#list=$(printf '%s\n' \
-#	😁 🤣 😂 😅 🥰 😍 \
-#	😘 😙 😎 🧐 🥺 😉 \
-#	🤔 😐 😑 😶 🫥 😏 \
-#	😒 🙄 😌 🤤 😋 🤐 \
-#	🤨 😡 😠 🤬 😈 👿 \
-#	🖐️ 👌 🤌 ✌️ 🤟 🤘 \
-#	🤙 👍 👎 ☝️ 👊 🧠 \
-#	🫀 💋 🧡 💛 ❤️ 💔 \
-#	🙈 💀 💩 🤡 👻 ☕ \
-#	🌹 🌼 🥀 🌺 🌻 🍺 \
-#	🍻 🥂 🥃 🍷 🍸 🔥 \
-#	👑 ♠️ ♥️ ♦️ ♣️ 🃏 \
-#	🚭 🚫 ⚠️ 🚬 📎
-#)
-patched=$(dmenu -v | grep -c hos)
-if [ "${patched}" -eq 1 ]; then
-	patches="-g 2 -bw 0 -l 6"
+patched=$(dmenu -v | grep -c 'hos-patched')
+if [ ${patched} -eq 1 ]; then
+	patches="-g 2"
 fi
+path="${HOME}/dev/hossein-lap/workflow/local/chars/unicode.txt"
+prompt='dmenu-unicode'
 style=""
 eargs=""
 # }}}
 # help function {{{
 help() {
 cat << EOF
-${prompt}: select and copy emoji(s) to clipboard
+${prompt}: select and copy unicode character(s) to clipboard
 
 Usage: [-h] [-s style] [-a arguments]
 
@@ -130,9 +115,8 @@ notify() {
 }
 # }}}
 # launch function {{{
-choose_emoji() {
-#	chosen=$(${runner} < "${path}")
-	chosen=$(grep -v '^#' "${path}" | ${runner})
+choose_unicode() {
+	chosen=$(${runner} < "${path}")
 
 	if [ -n "${chosen}" ]; then
 		clipit=$(printf "${chosen}" \
@@ -146,4 +130,5 @@ choose_emoji() {
 }
 # }}}
 
-choose_emoji
+choose_unicode
+

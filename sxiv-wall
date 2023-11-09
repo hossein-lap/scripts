@@ -14,7 +14,7 @@ runner="xwallpaper --zoom"
 # runner="xwallpaper --no-randr --zoom"
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
-	patches='-c -g 1 -bw 2'
+	patches='-c -g 1 -bw 2 -i'
 fi
 menu="dmenu -l 20 -p ${script_name} ${patches}"
 viewer="nsxiv -tor"
