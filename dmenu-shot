@@ -109,7 +109,7 @@ if [ -f "${name}" ]; then
 	notify "Screenshot taken" "${name}"
 	echo "${name}" | tr -d '\n' | xclip -selection clipboard
 	short_name=$(echo "${name}" | xargs basename)
-	do_open=$(echo "No\nYes" | dmenu -p "Open ${short_name}?" -i)
+	do_open=$(printf "No\nYes" | dmenu -p "Open ${short_name}?" -i)
 	[ "${do_open}" = 'Yes' ] && nsxiv "${name}"
 else
 	notify "Shot cancelled" \
