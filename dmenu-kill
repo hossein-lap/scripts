@@ -6,10 +6,12 @@
 # |_|   \___/ 
 #             
 
+kill -38 $(pidof dwmblocks)
+
 # variables {{{
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches='-c -bw 2'
+	patches='-c -bw 2 -i'
 fi
 prompt='kill'
 # }}}

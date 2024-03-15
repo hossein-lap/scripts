@@ -3,7 +3,8 @@
 # This script is the SUDO_ASKPASS variable, meaning that it will be used as a
 # password prompt if needed.
 
-dmenu -P -p "${1}" </dev/null
+tmp="${1}"
+dmenu -fn 'Ubuntu Mono:size=16' -P -p "${tmp}" </dev/null
 
 # if [ -z ${DISPLAY} ]; then
 # 	stty -echo

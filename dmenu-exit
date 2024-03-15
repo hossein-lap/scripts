@@ -126,7 +126,7 @@ if [ ${double_check} = 'yes' ]; then
 #		reboot) sudo -A reboot ;;
 		lock) slock & sleep .5; xset dpms force off ;;
 		exit) sleep .5; kill -TERM $(pgrep xinit -u $USER) ;;
-		renew) sleep .5; kill -s USR1 "$(pgrep ${wm} -u $USER)" ;;
+		renew) sleep .5; kill -USR1 "$(pidof ${wm})" ;;
 		# renew) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
 		screen-off) sleep .5; xset dpms force off ;;
 		hibernate) slock ${ctl} hibernate -i ;;

@@ -4,7 +4,7 @@ fzf="fzf -i --border=sharp --prompt=: --info=inline --header-first"
 
 session=$({ \
 	find \
-		~/dev/primejade/ ~/w ~/documents/ ~ \
+		~/dev/primejade/ ~/w ~/documents/ ~/dev/soda-sh/ ~ \
 		-maxdepth 2 \
 		-mindepth 1 \
 		-type d; \
@@ -28,6 +28,8 @@ else
 fi
 
 if [ -n "${session}" ]; then
+	echo -ne "\033]0;${session_name}\007"
+
 	if ! tmux has-session -t "${session_name}" 2>/dev/null; then
 		tmux new-session -s "${session_name}" -c "${session}" -d
 	fi

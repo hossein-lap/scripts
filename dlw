@@ -1,0 +1,150 @@
+#!/bin/sh
+
+if [ -z "${*}" ]; then
+	echo empty
+	exit 1
+fi
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: what problem is this script solving
+
+usage: [-h] [-i input] [-o output]
+
+   • arguemts:
+       -i --input      intput x
+       -o --output     output y
+       -s --style      launcher style
+       -e --args       extra args (to pass to the launcher)
+       -h --help       print this message
+
+   • example:
+       ${prompt} -i in -o out
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+# # argument parsing {{{
+# while [ "${#}" -gt 0 ]; do
+# case ${1} in
+# 	-i|--input)
+# 		url="${2}"
+# 		shift
+# 		;;
+# 	-o|--output)
+# 		out_name="${2}"
+# 		shift
+# 		;;
+# 	-h|--help)
+# 		help
+# 		exit 0
+# 		;;
+# 	-y|--ytdl)
+# 		wrapper="ytdlp_wrapper"
+# 		shift
+# 		;;
+# 	-a|--aria2c)
+# 		wrapper="aria2c_wrapper"
+# 		shift
+# 		;;
+# 	-w|--wget)
+# 		wrapper="wget_wraper"
+# 		shift
+# 		;;
+# 	-c|--curl)
+# 		wrapper="curl_wrapper"
+# 		shift
+# 		;;
+# 	*)
+# 		echo "Unknown parameter passed: ${1}"
+# 		exit 1
+# 		;;
+# esac
+# shift
+# done
+#
+# # checking args {{{
+# if [ -z "${input}" ]; then
+# printf '%s\n\n' "No input is specified" 1>&2
+# help
+# exit 1
+# fi
+#
+# if [ -z "${output}" ]; then
+# printf '%s\n\n' "No output is specified" 1>&2
+# help
+# exit 2
+# fi
+# # }}}
+# # }}}
+
+curl_wrapper() {
+	echo curl wrapper is not implemented yet, sorry
+	exit 2
+}
+
+ytdlp_wrapper() {
+	input="${1}"
+	echo this is yt-dlp
+	yt-dlp \
+		--bidi-workaround \
+		-c \
+		-w \
+		--proxy socks5://127.0.0.1:2080 \
+		--embed-thumbnail \
+		--embed-metadata \
+		-R infinite \
+		--trim-filenames 64 \
+		--embed-subs \
+		--write-auto-subs \
+		--embed-chapters \
+		--no-playlist \
+		-f 'best[height<=720]' \
+		"${input}"
+		# -a ln.dl
+		# --merge-output-format mp4 \
+		# -o "%(title)s.%(ext)s" \
+		#
+		# -F \
+		# -P "${PWD}/pyqt5" \
+		# --write-auto-subs \
+		# -o "%(id)s.%(ext)s" \
+		# -q \
+		# -r 350K \
+		# -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b" \
+}
+
+aria2c_wrapper() {
+	input="${1}"
+	echo this is aria2c
+	proxychains \
+	aria2c \
+		-c \
+		-m 0 \
+		-j 1 \
+		--file-allocation=none \
+		"${input}" \
+		-x 16 \
+		"${2}"
+		# --https-proxy="https://127.0.0.1:2081" \
+		# --max-download-limit=500k
+		# -i ln.dl \
+}
+
+wget_wraper() {
+	input="${1}"
+	echo this is wget
+	wget \
+		-c \
+		-t inf \
+		"${input}"
+		# -i ln.dl
+}
+
+url="${1}"
+aria2c_wrapper "${url}" "${2}"

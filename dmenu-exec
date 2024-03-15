@@ -43,9 +43,9 @@ cat << EOF
 EOF
 }
 
-term="st -t st"
+term="st -t Terminal"
 sh="bash"
-prompt='st-exec'
+prompt='exec'
 
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
@@ -61,4 +61,4 @@ runner="dmenu -p ${prompt} -l 15 ${patches} ${@}"
 cmd=$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' | ${runner} | sed "s/^${c} //")
 
 ${term} \
-	${sh} -c "${cmd} && ${sh}" \
+	${sh} -c "${cmd}; sleep 1" \

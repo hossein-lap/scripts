@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #  ____     _ 
 # |  _ \   | |
 # | |_) |  | |
@@ -58,5 +58,5 @@ fi
 notify-send -u low -a xrandr "resolution is set ${Res}"
 sleep 1
 
-xwallpaper --no-randr --zoom ~/pic/.wall
+xwallpaper --no-randr --zoom ~/pictures/.wall
 notify-send -u low -a xwallpaper "background is set"

@@ -8,8 +8,6 @@
 
 set -e
 
-null=♦
-
 if [ -z ${1} ]; then
 	dev=enp46s0
 else
@@ -21,7 +19,5 @@ lip=$(ip a \
 	| grep 'inet ' \
 	| awk '{print $2;}' \
 	| awk -F '/' '{print $1;}')
-
-[ -z $lip ] && lip=$null
 
 printf "${lip}"

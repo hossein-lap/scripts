@@ -9,6 +9,6 @@
 #	$(jdate '+%W' | awk '{print substr($0, 3)}' | sed 's,/,,g') \
 printf '%s %s %s %s' \
 	$(jdate '+%m/%d') \
-	$(date '+%a %y-%m-%d %H:%M')
+	$(date '+%a %y-%m-%d %H:%M:%S')
 #	$(jdate '+%E') \
 

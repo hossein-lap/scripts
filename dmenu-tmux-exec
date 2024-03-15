@@ -1,0 +1,90 @@
+#!/bin/sh
+
+c='•'
+
+distro=arch
+
+case ${distro} in
+	arch|artix|arco)
+		pkg_search="pacman -Ss "
+		;;
+	void)
+		pkg_search="xbps-query -Rs "
+		;;
+	debian|ubuntu|mint)
+		pkg_search="apt search "
+		;;
+	suse|opensuse|gecko)
+		pkg_search="zypper search "
+		;;
+	redhat|fedora)
+		pkg_search="dnf search "
+		;;
+	*)
+		;;
+esac
+
+
+tmp() {
+cat << EOF
+	${SHELL}
+	${pkg_search}
+	sudo sv restart 
+	iwctl station list 
+	pulsemixer
+	xprop
+	btop
+EOF
+}
+
+term="st -t Terminal"
+sh="bash"
+prompt='exec'
+
+pached=$(dmenu -v | grep -c 'hos-patched')
+if [ ${pached} -eq 1 ]; then
+	patches="-c -bw 2 -g 1"
+fi
+
+runner="dmenu -p ${prompt} -l 15 ${patches} ${@}"
+
+#${sh} -c \
+#	"$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' \
+#		| ${runner} | sed "s/^${c} //")"
+
+cmd=$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' | ${runner} | sed "s/^${c} //")
+
+if [ -z ${cmd} ]; then
+	exit 2
+fi
+
+session="$(echo ${cmd} | tr . _)"
+
+inside=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}' | grep -c ${session})
+if [ "${inside}" != '0' ]; then
+	session_name=${cmd}
+# else
+# 	session_name=$(basename $(dirname ${session}))/$(basename ${session})
+fi
+# session_name=$(echo "${session_name}" | tr ." " _+)
+session_name="${session}"
+
+cmd="${cmd} && ${sh}"
+
+if [ -n "${session}" ]; then
+	echo -ne "\033]0;${session_name}\007"
+	if ! tmux has-session -t "${session_name}" 2>/dev/null; then
+		tmux new-session -s "${session_name}" "${session}" -d
+	fi
+
+	if [ -z "${TMUX}" ]; then
+		${term} tmux att -t ${session_name}
+	else
+		${term} tmux switchc -t ${session_name}
+	fi
+else
+	exit 84
+fi
+
+# ${term} \
+# 	${sh} -c "${cmd} && ${sh}" \

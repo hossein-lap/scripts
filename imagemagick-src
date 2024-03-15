@@ -1,0 +1,36 @@
+#!/bin/sh
+#  _  _ ___
+# | || | __| P
+# | __ | _|
+# |_||_|___| J
+#
+
+bg="#002b36"
+fg="#ccccee"
+input="${1}"
+output="${2}"
+
+highlight \
+		-i "${input}" \
+		-O pango \
+		-P \
+		-T "This is a simple test!" \
+		-l \
+		-j 5 \
+		-k "Fira Mono" \
+		-K 38 \
+		-s solarized-dark \
+		-t 4 \
+	| convert \
+		-background "${bg}" \
+		-fill "${fg}" \
+		pango:@- \
+		-size 800x \
+		-background none \
+		"${output}"
+
+imagemagick-trim -i "${output}" -o "${output}"
+imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 50 -bc "${bg}"
+imagemagick-trim -i "${output}" -o "${output}"
+~/dev/primejade/hos-workflow/scripts/imagemagick-round -i "${output}" -o "${output}" -r 30
+~/dev/primejade/hos-workflow/scripts/imagemagick-gradiant -i "${output}" -o "${output}"

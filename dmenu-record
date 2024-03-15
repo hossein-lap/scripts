@@ -8,9 +8,12 @@
 
 # set -e
 
-# Variables {{{
-ffmpegcount=$(pgrep -c ffmpeg)
-script_name=$(echo $0 | awk -F '/' '{print $NF;}')
+# variables {{{
+runner="ffmpeg"
+search="ffmpeg"
+ffmpegcount=$(pgrep -c ${search})
+# ScriptName=$(echo $0 | awk -F '/' '{print $NF;}')
+ScriptName='record'
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
 	patches="-c -bw 2 -g 1 -r"
@@ -18,11 +21,18 @@ fi
 dmenu="dmenu \
 		-i \
 		-l 5 \
-		-p ${script_name} \
+		-p ${ScriptName} \
 		${patches} \
 		${@} \
 		"
-#script_name="RecordScreen"
+# ScriptName="ffmpeg"
+Extention="mp4"
+AudioCodec="aac"
+FrameRate="30"
+# VideoCodec="h264"
+VideoCodec="libx265"
+Directory="${HOME}/videos/screen-record"
+BaseName="record-$(date +%y%m%d_%H%M%S)"
 # }}}
 # sent notification {{{
 notify() {
@@ -41,19 +51,13 @@ notify() {
 			;;
 	esac
 
-	notify-send -a ${script_name} -i simplescreenrecorder -u $mode "${1}"
+	notify-send -a ${ScriptName} -u $mode "${1}"
 }
 # }}}
-extention="mkv"
-audioCodec="aac"
-framerate="30"
-videoCodec="libx264"
-Directory="${HOME}/videos/screen-record"
-Name=$(date +%y%m%d_%H%M%S)
 
 # Kill {{{
 stop_record () {
-	pid=$(pgrep ffmpeg)
+	pid=$(pgrep ${search})
 	thesig=$(printf '%s\n' \
 		"2   SIGINT   Interrupt  Terminate" \
 		"3   SIGQUIT  Quit       Terminate with core dump" \
@@ -85,39 +89,36 @@ record_screen () {
 
 	DemResTmp=$(xdpyinfo | grep dimensions | awk '{print $2;}')
 
-	if [ -z "${monsel}" ]; then
-		monsel=$(printf '%s\n' '↓' '↑' '↕' '→' \
-			| ${dmenu} -p 'monitor' -l 2 -g 2)
-		if [ -z "${monsel}" ]; then
-			notify "Record canceled" 1
-			exit 0
-		fi
-
-		case ${monsel} in
-			↓)
-				DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
-				DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
-
-				DemRes="${DemResX}x${DemResY}"
-				Monitor=":0.0+0,1080"
-				;;
-			↑)
-				DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
-				DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
-
-				DemRes="${DemResX}x${DemResY}"
-				Monitor=":0.0+0,0"
-				;;
-			↕)
-				DemRes="${DemResTmp}"
-				Monitor=":0.0"
-				;;
-			*)
-				notify "Record canceled" 1
-				exit 0
-				;;
-		esac
+	split_choice=$(printf '%s\n' '↓' '↑' '↕' '→' \
+		| ${dmenu} -p 'Monitor' -l 2 -g 2)
+	if [ -z "${split_choice}" ]; then
+		notify "Record canceled" 1
+		exit 0
 	fi
+
+	case ${split_choice} in
+		↓)
+			DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
+			DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
+
+			DemRes="${DemResX}x${DemResY}"
+			Monitor=":0.0+0,1080"
+			;;
+		↑)
+			DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
+			DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
+
+			DemRes="${DemResX}x${DemResY}"
+			Monitor=":0.0+0,0"
+			;;
+		↕)
+			DemRes="${DemResTmp}"
+			Monitor=":0.0"
+			;;
+		*)
+			notify "Record canceled" 1; exit 119 ;;
+	esac
+
 #	echo "${DemResTmp}"
 #	echo "${DemRes}"
 #	echo "${Monitor}"
@@ -125,49 +126,52 @@ record_screen () {
 
 	case ${WithAudio} in
 	mic)
-		ffmpeg \
+		${runner} \
 			-f x11grab \
+			-framerate ${FrameRate} \
 			-s ${DemRes} \
 			-i ${Monitor} \
-			-f pulse \
-			-ac 2 \
-			-i default \
-			-acodec ${audioCodec} \
-			-r ${framerate} \
-			-vcodec ${videoCodec} \
+			-r ${FrameRate} \
+			-use_wallclock_as_timestamps 1 \
+			-f alsa -thread_queue_size 1024 -i default \
+			-c:v ${VideoCodec} \
+			-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 			-pix_fmt yuv420p \
 			-loglevel quiet -stats \
-			"${Directory}/${BaseName}-${Name}.${extention}"
+			"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 	sys)
 		PaDevOut=$(pactl list short sources \
 			| awk '{print $2;}' \
 			| grep output)
-		ffmpeg \
+		${runner} \
 			-f x11grab \
+			-framerate ${FrameRate} \
 			-s ${DemRes} \
 			-i ${Monitor} \
 			-f pulse \
 			-i "${PaDevOut}" \
 			-ac 2 \
-			-acodec ${audioCodec} \
-			-vcodec ${videoCodec} \
+			-acodec ${AudioCodec} \
+			-vcodec ${VideoCodec} \
 			-pix_fmt yuv420p \
-			-r ${framerate} \
+			-r ${FrameRate} \
 			-loglevel quiet -stats \
-			"${Directory}/${BaseName}-${Name}.${extention}"
+			"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 	none)
-		ffmpeg \
+		${runner} \
 			-f x11grab \
+			-framerate ${FrameRate} \
 			-s ${DemRes} \
 			-i ${Monitor} \
-			-r ${framerate} \
-			-vcodec ${videoCodec} \
+			-r ${FrameRate} \
+			-vcodec ${VideoCodec} \
 			-pix_fmt yuv420p \
 			-loglevel quiet -stats \
-			"${Directory}/${BaseName}-${Name}.${extention}"
+			"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
+	*) notify "Record canceled" 1; exit 174;;
 	esac
 }
 # }}}
@@ -178,7 +182,7 @@ record_act_window () {
 	fi
 	
 	DemRes=$(xwininfo -id $(xdotool getactivewindow))
-	OutRes=$(xdpyinfo | grep dimensions | awk '{print $2;}')
+	# OutRes=$(xdpyinfo | grep dimensions | awk '{print $2;}')
 	PaDevOut=$(pactl list short sources | awk '{print $2;}' | grep output)
 	PaDevIn=$(pactl list short sources | awk '{print $2;}' | grep input)
 	
@@ -192,43 +196,51 @@ record_act_window () {
 		*"Height"*) h=$v;;
 		esac
 	done
-###
+	DemGap="+$(expr $x + $bw),$(expr $y + $bw | tr -d ' ')"
+	DemRes="$(echo "${w}x${h}" | tr -d ' ')"
+
 	case ${WithAudio} in
 		mic)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
-				-f pulse \
-				-ac 2 \
-				-i default \
-				-vcodec ${videoCodec} \
-				-acodec ${audioCodec} \
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-i "${DemGap}" \
+				-r ${FrameRate} \
+				-use_wallclock_as_timestamps 1 \
+				-f alsa -thread_queue_size 1024 -i default \
+				-c:v ${VideoCodec} \
+				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		sys)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-i "${DemGap}" \
+				-r ${FrameRate} \
 				-f pulse \
 				-i "${PaDevOut}" \
 				-ac 2 \
-				-vcodec ${videoCodec} \
-				-acodec ${audioCodec} \
+				-vcodec ${VideoCodec} \
+				-acodec ${AudioCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
-		*)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
-				-vcodec ${videoCodec} \
+		none)
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-i "${DemGap}" \
+				-r ${FrameRate} \
+				-vcodec ${VideoCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
+		*) notify "Record canceled" 1; exit 243;;
 	esac
 	}
 }
@@ -240,10 +252,8 @@ record_sel_window () {
 	fi
 
 	WinId=$(xdotool selectwindow getwindowgeometry --shell \
-		| grep WINDOW \
-		| awk -F '=' '{print $NF;}')
-	DemRes=$(xwininfo -id "${WinId}")
-	OutRes=$(xdpyinfo | grep dimensions | awk '{print $2;}')
+		| awk -F '=' '/WINDOW/ {print $NF;}')
+	# OutRes=$(xdpyinfo | awk '/dimensions/ {print $2;}')
 	PaDevOut=$(pactl list short sources | awk '{print $2;}' | grep output)
 	PaDevIn=$(pactl list short sources | awk '{print $2;}' | grep input)
 	
@@ -257,43 +267,54 @@ record_sel_window () {
 		*"Height"*) h=$v;;
 		esac
 	done
-###
+	DemGap="+$(expr $x + $bw),$(expr $y + $bw | tr -d ' ')"
+	DemRes="$(echo "${w}x${h}" | tr -d ' ')"
+
+	echo "${DemRes} --- ${DemGap}"
+	# exit 2
+
 	case ${WithAudio} in
 		mic)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
-				-f pulse \
-				-ac 2 \
-				-i default \
-				-vcodec ${videoCodec} \
-				-acodec ${audioCodec} \
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-i "${DemGap}" \
+				-r ${FrameRate} \
+				-use_wallclock_as_timestamps 1 \
+				-f alsa -thread_queue_size 1024 -i default \
+				-c:v ${VideoCodec} \
+				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		sys)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-r ${FrameRate} \
+				-i "${DemGap}" \
 				-f pulse \
 				-i "${PaDevOut}" \
 				-ac 2 \
-				-vcodec ${videoCodec} \
-				-acodec ${audioCodec} \
+				-c:v ${VideoCodec} \
+				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
-		*)
-		ffmpeg -y -f x11grab -r ${framerate} \
-				-video_size "$((w))x$((h))" \
-				-i "+$((x+bw)),$((y+bw))" \
-				-vcodec ${videoCodec} \
+		none)
+		${runner} -y -f x11grab \
+				-framerate ${FrameRate} \
+				-video_size "${DemRes}" \
+				-i "${DemGap}" \
+				-r ${FrameRate} \
+				-c:v ${VideoCodec} \
 				-pix_fmt yuv420p \
 				-loglevel quiet -stats \
-				"${Directory}/${BaseName}-${Name}.${extention}"
+				"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
+		*) notify "Record canceled" 1; exit 317;;
 	esac
 	}
 }
@@ -301,7 +322,7 @@ record_sel_window () {
 # Help {{{
 help () {
 	printf '%s\n' "$0" "Record screen/window" \
-		"   using ffmpeg" \
+		"   using ${runner}" \
 	| ${dmenu} -p 'Help'
 }
 # }}}
@@ -319,10 +340,17 @@ case ${choice} in
 	[sS]elect|[wW]hole|[aA]ctive)
 		WithAudio=$(printf '%s\n' "none" "mic" "sys" \
 			| ${dmenu} -p 'Audio?')
-		BaseName=$(${dmenu} -p 'Output name:' < /dev/null)
 
-		if [ -z "${BaseName}" ]; then
-			BaseName="record"
+		if [ -z ${WithAudio} ]; then
+			notify "Record canceled"; exit 345
+		fi
+
+		InputName="$(${dmenu} -p 'File name:' < /dev/null | sed 's/[ -]/_/g')"
+
+		if [ -z "${InputName}" ]; then
+			Name=""
+		else
+			Name="-${InputName}"
 		fi
 	;;
 esac
@@ -339,7 +367,7 @@ case ${choice} in
 	[hH]elp) help
 	;;
 	*)
-		notify "Record canceled" 1
+		notify "Record canceled" 1: exit 371
 	;;
 esac
 # }}}

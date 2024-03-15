@@ -20,7 +20,7 @@ status=$(mpc | tail -1 | sed -e 's/: /:/g')
 prompt='music'
 runner="dmenu -p ${prompt} ${patches} ${@}"
 choice=$(printf '%s\n' "play" "pause" "next" "prev" \
-		"volume" "playlist" "clear" "setting" \
+		"seek" "volume" "playlist" "clear" "setting" \
 	| ${runner})
 
 if [ -z "${choice}" ]; then
@@ -106,7 +106,7 @@ case ${choice} in
 	setting)
 		settings=$({ printf '%s\n' "run" "kill" "repeat" "random" "single" "consume" \
 				"------------------------------------"; mpc; } \
-			| ${runner} -l 15 -g 1)
+			| ${runner} -l 15)
 
 		if [ -z "${settings}" ]; then
 			exit 2
@@ -119,7 +119,7 @@ case ${choice} in
 		fi
 		;;
 	playlist)
-		args="-l 25 -g 1"
+		args="-l 25"
 		theplaylist=$(mpc ls${choice} | sort | ${runner} ${args})
 		for i in ${theplaylist}; do
 			mpc load ${i}

@@ -91,7 +91,7 @@ dymax=$(identify ${input} \
 	| awk '{print $3;}' \
 	| awk -F 'x' '{print $2;}')
 
-magick \
+convert \
 	${input} \( \
 		+clone \
 		-threshold 100% \

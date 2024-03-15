@@ -1,0 +1,18 @@
+#!/bin/sh
+
+dmenu="dmenu -i -p flatpak"
+
+package=$(flatpak list | awk -F '\t' '/stable/ {print $1;}' | ${dmenu})
+
+if [ -n "${package}" ]; then
+	name=$(flatpak list | awk "/${package}/ {print \$2;}")
+fi
+
+if [ -n "${name}" ]; then
+	prox=$(printf 'Yes\nNo' | ${dmenu} -p "Use proxy?")
+	if [ "${prox}" = 'No' ]; then
+		flatpak run "${name}" >/dev/null 2>&1 & disown
+	else
+		proxychains flatpak run "${name}" >/dev/null 2>&1 & disown
+	fi
+fi

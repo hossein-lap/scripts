@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# json
+# curl 'wttr.in/Langarud?0dq&lang=en&format=j1'
+curl 'wttr.in/Langarud?0dq&lang=en&format=j1'
+
+# format: 
+# 	%l: location
+# 	%c: status - emoji
+# 	%C: status - text
+# 	%t: temp
+wttr() {
+	location=${1}
+	# curl -s "wttr.in/${location}?0&format=%c+%t" 2>/dev/null  \
+	curl "wttr.in/${location}?0dq&lang=en&format=j1" 2>/dev/null \
+		&& printf ' ' \
+		|| printf "♦"
+	# echo
+}
+
+wttr "Langarud" # > /tmp/wttr.json
+
+

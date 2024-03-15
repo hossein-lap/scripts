@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# # json {{{
+# # curl "wttr.in/Langarud?0dq&lang=en&format=j1"
+# # curl "wttr.in/Langarud?0dq&lang=en&format=j1"
+#
+# # format: 
+# # 	%l: location
+# # 	%c: status - emoji
+# # 	%C: status - text
+# # 	%t: temp
+#
+# wttr() {
+# 	location=${1}
+# 	# curl -s "wttr.in/${location}?0&format=%c+%t" 2>/dev/null  \
+# 	curl -s "wttr.in/${location}?0dq&lang=en&format=j1" 2>/dev/null \
+# 		&& printf " " \
+# 		|| printf "♦"
+# 	# echo
+# }
+#
+# if [ ! -f /tmp/wttr.json ]; then
+# 	wttr "Langarud" 2>/dev/null > /tmp/wttr.json
+# fi
+#
+# # cat /tmp/wttr.json \
+# # 	| jq "(.weather[0].date) "
+# #
+# # cat /tmp/wttr.json \
+# # 	| jq "(.weather[1].date) "
+# #
+# # cat /tmp/wttr.json \
+# # 	| jq "(.weather[2].date) "
+#
+# # for i in {0..7}; do
+# # 	 cat /tmp/wttr.json \
+# # 		| jq "(.weather[2].hourly[${i}]) "
+# # done
+#
+# # temp=".weather[0].hourly[0].tempC"
+# # stat=".weather[0].hourly[0].weatherDesc[0].value"
+#
+# date=".weather[0].date"
+# temp=".weather[0].hourly[0].tempC"
+# stat=".weather[0].hourly[0].weatherDesc[0].value"
+#
+# # jq -r "{temp: ${temp}, stat: ${stat}} " \
+# jq -r "select(any(.weather[0].hourly[0]; contains(\"chanceof\")))" \
+# 	< /tmp/wttr.json
+# # }}}
+
+pathced=$(dmenu -v | grep -c hos)
+if [ "${pathced}" != "0" ]; then
+	patches="-c -bw 2"
+fi
+runner="dmenu -p wttr.in -l 50 ${patches}"
+date="$(date '+%Y-%m-%d')"
+name="/tmp/wttr-${location}-${date}.txt"
+
+location=$(printf '%s\n' "Langarud" "Lahijan" "Kumeleh" \
+	| sort -u \
+	| ${runner})
+
+if [ -z "${location}" ]; then
+	exit 63
+fi
+
+if [ ! -f "${name}" ]; then
+	{
+		echo
+		curl "wttr.in/${location}?dTQF&lang=en" 2>/dev/null 
+		echo
+	} > ${name}
+fi
+
+${runner} >/dev/null 2>&1 < ${name}

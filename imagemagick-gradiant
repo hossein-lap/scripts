@@ -132,20 +132,42 @@ if [ -z "${#}" ]; then
 	exit 1
 fi
 
+res=$(identify "${input}" | awk '{print $3;}')
+resX=$( expr $(echo ${res} | awk -F 'x' '{print $1;}') + 40 )
+resY=$( expr $(echo ${res} | awk -F 'x' '{print $2;}') + 40 )
+
+echo "${res}: ${resX} x ${resY}"
+# resX=1558 # 1598 :40
+# resY=1237 # 1277 :40
+#
+# resX=1174
+# resY=481
+#
+# echo $( expr ${resX} + 40 )
+# echo $( expr ${resY} + 40 )
+#
+# # resX=1214
+# # resY=521
+#
+# exit 142
+
 $(which convert) \
+	-size ${resX}x${resY} \
+	gradient:'#ff5577'-'#770000' \
 	${input} \
 	-bordercolor ${border_color} \
 	-border ${border_width} \( \
-		+clone -background \
-		${shadow_color} -shadow ${shadow_width}x${shadow_rate}+${x}+${y} \
+		+clone \
+		-background ${shadow_color} \
+		-shadow ${shadow_width}x${shadow_rate}+${x}+${y} \
 	\) \
 	+swap -background ${background_color} \
 	-layers merge +repage \
 	${output} \
-	2>/dev/null
+	# 2>/dev/null
 
 if [ $? -eq 0 ]; then
 	printf "${output} ✓\n"
 else
-	printf "${output} ×\n"
+	printf "${output} ×\n" > /dev/stderr
 fi

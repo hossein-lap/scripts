@@ -62,4 +62,4 @@
 #done
 ## }}}
 
-mpv --profile=low-latency --untimed /dev/video0
+prime-run mpv --profile=low-latency --untimed /dev/video0

@@ -12,7 +12,7 @@ set -e
 screen_record() {
 	ffmpeg_recordcount=$(ps aux | grep '\<ffmpeg\>' | grep "${HOME}/videos/screen-record" -c)
 	if [ "${ffmpeg_recordcount}" -eq 1 ]; then
-		ffmpeg_record='rec '
+		ffmpeg_record='rec'
 	elif [ "${ffmpeg_recordcount}" -gt 1 ]; then
 		ffmpeg_record="rec(${ffmpeg_recordcount}) "
 	else

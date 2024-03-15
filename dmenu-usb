@@ -6,7 +6,7 @@
 # |_|   \___/ 
 #             
 
-set -e
+kill -35 $(pidof dwmblocks) 2>/dev/null
 
 # Variables {{{
 prompt='usb'
@@ -292,5 +292,4 @@ interactive() {
 	esac
 }
 # }}}
-
 interactive
