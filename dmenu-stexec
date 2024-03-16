@@ -61,4 +61,4 @@ runner="dmenu -p ${prompt} -l 15 ${patches} ${@}"
 cmd=$(tmp | sed -e "s/^/${c} /" -e 's/\t/ /g' | ${runner} | sed "s/^${c} //")
 
 ${term} \
-	${sh} -c "${cmd} && ${sh}" \
+	${sh} -c "sleep 1; ${cmd} && ${sh}" \
