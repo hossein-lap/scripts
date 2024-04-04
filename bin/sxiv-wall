@@ -48,8 +48,9 @@ wall_set() {
 		wal -c
 		wal -n -s -i "${presist_wall}"
 		xrdb ~/.Xresources
-		cat ~/.config/dunst/dunstrc.tmp ~/.cache/wal/dunstrc > ~/.config/dunst/dunstrc
+		cat ~/.config/dunst/dunstrc.tmp ~/.cache/wal/dunstrc > ~/.config/dunst/dunstrc.dwm
 		kill `pidof dunst` || echo 1
+		st-wall tmp
 		dunst & disown
 		notif_send "Wallpaper changed" "${ww}"
 		for i in $(pidof st tabbed); do kill -s USR1 "${i}" || echo "${i}"; done

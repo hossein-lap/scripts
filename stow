@@ -1,0 +1,10 @@
+#!/bin/sh
+
+name="bin"
+target="${HOME}/.local/${name}"
+
+if [ ! -d "${target}" ]; then
+	mkdir "${target}"
+fi
+
+stow "${name}" -t "${target}"

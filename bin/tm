@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+tmp="$(basename $(dirname $(pwd)))/$(basename $(pwd))"
+session_name=$(echo ${tmp} | tr . _)
+
+check=$(tmux ls 2>/dev/null | grep -c "${session_name}")
+
+if [ "${check}" = '0' ]; then
+	echo -ne "\033]0;${session_name}\007"
+	tmux new -s ${session_name} ${@} 2>/dev/null
+else
+	echo -ne "\033]0;${session_name}\007"
+	if [ -z "${TMUX}" ]; then
+		tmux att -t ${session_name} 2>/dev/null
+	else
+		tmux switchc -t ${session_name} 2>/dev/null
+	fi
+fi

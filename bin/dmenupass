@@ -4,7 +4,8 @@
 # password prompt if needed.
 
 tmp="${1}"
-dmenu -fn 'Ubuntu Mono:size=16' -P -p "${tmp}" </dev/null
+dmenu -P -p "${tmp}" </dev/null
+#  -fn 'Liberation Mono:size=16'
 
 # if [ -z ${DISPLAY} ]; then
 # 	stty -echo

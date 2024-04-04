@@ -1,0 +1,5 @@
+#!/bin/sh
+
+yad \
+	--title="Color Picker" \
+    --color --picker

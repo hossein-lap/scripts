@@ -67,6 +67,12 @@ while [ "${#}" -gt 0 ]; do
 			w="${2}"
 			shift
 			;;
+		# -s|--shadow)
+		# 	shadow="true"
+		# 	;;
+		# -t|--trim)
+		# 	trim="true"
+		# 	;;
 		-x|--xgap)
 			x="${2}"
 			shift
@@ -123,6 +129,14 @@ if [ -z "${output}" ]; then
 	help
 	exit 3
 fi
+
+# if [ -z "${trim}" ]; then
+# 	trim=
+# fi
+
+# if [ -z "${shadow}" ]; then
+# 	shadow=
+# fi
 
 if [ -z "${bg_color}" ]; then
 	bg_color=white
@@ -193,3 +207,11 @@ if [ $? -eq 0 ]; then
 else
 	printf '×\n'
 fi
+
+# if [ "${trim}" = "true" ]; then
+# 	imagemagick-trim -i ${output} -o ${output}
+# fi
+
+# if [ "${shadow}" = "true" ]; then
+# 	imagemagick-shadow -i ${output} -o ${output}
+# fi

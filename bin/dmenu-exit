@@ -105,7 +105,7 @@ case "$(readlink -f /sbin/init)" in
 esac
 
 choice=$(printf '%s\n' \
-	"renew" "lock" "screen-off" "exit" "poweroff" "reboot" "sleep" "hibernate" \
+	"fresh" "lock" "screen-off" "exit" "poweroff" "reboot" "sleep" "hibernate" \
 	| ${runner} ${args})
 
 #if [ -z ${choice} ]; then
@@ -126,8 +126,8 @@ if [ ${double_check} = 'yes' ]; then
 #		reboot) sudo -A reboot ;;
 		lock) slock & sleep .5; xset dpms force off ;;
 		exit) sleep .5; kill -TERM $(pgrep xinit -u $USER) ;;
-		renew) sleep .5; kill -USR1 "$(pidof ${wm})" ;;
-		# renew) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
+		fresh) sleep .5; kill -USR1 "$(pidof ${wm})" ;;
+		# fresh) sleep .5; kill -HUP "$(pgrep ${wm} -u $USER)" ;;
 		screen-off) sleep .5; xset dpms force off ;;
 		hibernate) slock ${ctl} hibernate -i ;;
 		sleep) slock ${ctl} suspend -i ;;
