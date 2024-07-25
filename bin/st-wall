@@ -4,19 +4,25 @@
 name="${HOME}/.local/share/dwm/background"
 
 # convert ${name} -resize 50% ${name}.jpg
-	# -resize 1920x1080 \
-convert \
-	${name} \
-	-background black \
-	-gravity center \
-	-extent 1920x1080 \
-	${name}.jpg
-# convert ${name} ${name}.jpg
 
-jpg2ff < ${name}.jpg \
-	| ff-border e 50 \
-	| ff-bright rgba 0 0.12 1 \
-	| ff-blur 50 15 > ${name}.ff
+# if [ -f "${1}" ]; then
+# 	name="${1}"
+
+		# -extent 1920x1080 \
+	convert \
+		-resize 1920x1080 \
+		${name} \
+		-background black \
+		-gravity center \
+		${name}.jpg
+	# convert ${name} ${name}.jpg
+
+	jpg2ff < ${name}.jpg \
+		| ff-border e 50 \
+		| ff-bright rgba 0 0.2 1 \
+		| ff-blur 50 05 > ${name}.ff
+
+# fi
 
 if [ "${#}" -eq 0 ]; then
 	for i in $(pidof st tabbed); do kill -s USR1 "${i}" || echo "${i}"; done

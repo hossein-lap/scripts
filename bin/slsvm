@@ -1,0 +1,25 @@
+#!/bin/sh
+
+names=$(ps aux \
+	| grep -v grep \
+	| grep qemu-system \
+	| grep ${HOME}/.local/virtual-machines \
+	| awk -F '=' '{print $3;}' \
+	| awk -F '.' '{print $1;}' \
+)
+
+# printf 'v:%s,%s' ${names}
+
+for i in ${names}; do
+	if [ -z ${out} ]; then
+		out="${i}"
+	else
+		out="${out},${i}"
+	fi
+done
+
+if [ -z ${out} ]; then
+	printf ♦
+else
+	printf 'v:%s' $out
+fi

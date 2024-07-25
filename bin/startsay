@@ -13,7 +13,8 @@ pkg="xbps-query -l"
 
 mem=$(free -h | grep ^Mem | awk '{print $3"/"$2;}')
 pkgs=$($pkg | wc -l)
-uptime=$(uptime | awk '{print $3;}' | sed 's/,//')
+# pkgs="nix(?)"
+uptime=$(uptime | sed 's/...:..:..  up //' | awk -F ',' '{print $1;}' | sed 's/ day/d/')
 date=$(date '+%H:%M %a %y-%m-%d')
 kernel=$(uname -r)
 

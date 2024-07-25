@@ -1,15 +1,21 @@
 #!/bin/sh
 
 fzf="fzf -i --border=sharp --prompt=: --info=inline --header-first --header Sessions"
-session_name=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}' | ${fzf})
+list=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}')
+
+if [ -z "${list}" ]; then
+	echo "tmux: No active session(s)" > /dev/stderr
+	exit 1
+else
+	session_name=$(echo ${list} | tr ' ' '\n' | ${fzf})
+fi
 
 if [ -z "${session_name}" ]; then
 	exit 2
 fi
 
-echo -ne "\033]0;${session_name}\007"
 if [ -z "${TMUX}" ]; then
-	tmux att -t ${session_name} 2>/dev/null
+	tmux att -t ${session_name} 2> /dev/null
 else
-	tmux switchc -t ${session_name} 2>/dev/null
+	tmux switchc -t ${session_name} 2> /dev/null
 fi

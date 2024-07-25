@@ -8,7 +8,13 @@
 
 c='•'
 
-distro="debian"
+if [ "${1}" = "-wm" ]; then
+	if [ -z "${2}" ]; then
+		distro="void"
+	else
+		distro="${2}"
+	fi
+fi
 
 case ${distro} in
 	debian)

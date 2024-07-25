@@ -19,7 +19,14 @@ mpd_status() {
 		paused)  mpd="=${mpdtracks}" ;;
 		*) mpd='' ;;
 	esac
-	printf '%s' ${mpd}
+
+	if [ -z "${mpd}" ]; then
+		printf '%s' "♦"
+	# elif [ "${mpd}" = "0" ]; then
+	# 	printf '%s' "-"
+	else
+		printf '%s' ${mpd}
+	fi
 }
 # }}}
 

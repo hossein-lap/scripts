@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 
-tmp="$(basename $(dirname $(pwd)))/$(basename $(pwd))"
-session_name=$(echo ${tmp} | tr . _)
+if [ -z "${1}" ]; then
+	tmp="$(basename $(dirname $(pwd)))/$(basename $(pwd))"
+	session_name=$(echo ${tmp} | tr . _)
+else
+	session_name="${1}"
+fi
 
 check=$(tmux ls 2>/dev/null | grep -c "${session_name}")
 
 if [ "${check}" = '0' ]; then
-	echo -ne "\033]0;${session_name}\007"
-	tmux new -s ${session_name} ${@} 2>/dev/null
-else
-	echo -ne "\033]0;${session_name}\007"
-	if [ -z "${TMUX}" ]; then
-		tmux att -t ${session_name} 2>/dev/null
+	if [ -n "${TMUX}" ] ; then
+		tmux new-session -s "${session_name}" -c "${PWD}" -d 2>/dev/null
 	else
-		tmux switchc -t ${session_name} 2>/dev/null
+		tmux new-session -s "${session_name}" 2>/dev/null
 	fi
+fi
+
+if [ -z "${TMUX}" ]; then
+	tmux att -t ${session_name} 2>/dev/null
+else
+	tmux switchc -t ${session_name} 2>/dev/null
 fi

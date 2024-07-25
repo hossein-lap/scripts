@@ -2,7 +2,7 @@
 
 # json
 # curl 'wttr.in/Langarud?0dq&lang=en&format=j1'
-curl 'wttr.in/Langarud?0dq&lang=en&format=j1'
+# curl 'wttr.in/Langarud?0dq&lang=en&format=j1'
 
 # format: 
 # 	%l: location

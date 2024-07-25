@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #  ____     _ 
 # |  _ \   | |
 # | |_) |  | |
@@ -17,8 +17,8 @@ if [ ${pached} -eq 1 ]; then
 	patches='-c -g 1 -bw 2 -i'
 fi
 menu="dmenu -l 20 -p ${script_name} ${patches}"
-# viewer="nsxiv -torf"
-viewer="sxiv -torf"
+# viewer="sxiv -torf"
+viewer="nsxiv -torf"
 
 help() {
 cat << EOF
@@ -46,14 +46,14 @@ wall_set() {
 			cp -fv "${1}" ${presist_wall}
 		fi
 		wal -c
-		wal -n -s -i "${presist_wall}"
+		wal -q -n -s -i "${presist_wall}"
 		xrdb ~/.Xresources
 		cat ~/.config/dunst/dunstrc.tmp ~/.cache/wal/dunstrc > ~/.config/dunst/dunstrc.dwm
 		kill `pidof dunst` || echo 1
-		st-wall tmp
+		st-wall
 		dunst & disown
 		notif_send "Wallpaper changed" "${ww}"
-		for i in $(pidof st tabbed); do kill -s USR1 "${i}" || echo "${i}"; done
+		for i in $(pidof st tabbed dwm); do kill -s USR1 "${i}" || echo "${i}"; done
 		exit 0
 	else
 		exit 1
@@ -117,28 +117,28 @@ choose_wall() {
 #	wall_set "${wall}"
 }
 
-#if [ "${1}" = '-h' ]; then
-#	help
-#	exit 0
-#elif [ "${1}" = '-s' ]; then
-#	shuf_wall "${2}"
-#elif [ "${1}" = '-r' ]; then
-#	${runner} ${presist_wall}
-#elif [ -d "${1}" ]; then
-#	dir_wall ${1}
-#elif [ -f "${1}" ]; then
-#	wall_set "${1}"
-#else
-#	choose_wall
-#fi
+if [ "${1}" = '-h' ]; then
+	help
+	exit 0
+elif [ "${1}" = '-s' ]; then
+	shuf_wall "${2}"
+elif [ "${1}" = '-r' ]; then
+	${runner} ${presist_wall}
+elif [ -d "${1}" ]; then
+	dir_wall ${1}
+elif [ -f "${1}" ]; then
+	wall_set "${1}"
+else
+	choose_wall
+fi
 
-# start {{{
-case "${1}" in
-	-h) help; exit 0 ;;
-	-s) shuf_wall "${2}" ;;
-	-r) wall_set ${presist_wall} ;;
-	-d) dir_wall "${2}" ;;
-	-f) wall_set "${2}" ;;
-	*) choose_wall ;;
-esac
-# }}}
+# # start {{{
+# case "${1}" in
+# 	-h) help; exit 0 ;;
+# 	-s) shuf_wall "${2}" ;;
+# 	-r) wall_set ${presist_wall} ;;
+# 	-d) dir_wall "${2}" ;;
+# 	-f) wall_set "${2}" ;;
+# 	*) choose_wall ;;
+# esac
+# # }}}

@@ -13,7 +13,7 @@ notify() {
 	printf '%s: %s\n' "${1}" "${2}" 1>&2
 }
 
-path="${HOME}/vm/qemu"
+path="${HOME}/.local/virtual-machines/qemu"
 
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
@@ -29,7 +29,9 @@ runner="dmenu \
 
 list=$(find ${path} -maxdepth 1 -type d \
 	| grep -v "${path}$\|manage.sh" \
-	| awk -F '/' '{print $NF;}')
+	| awk -F '/' '{print $NF;}' \
+	| grep -v '\.' \
+	| grep -v '_')
 
 vm_name=$(echo ${list} | tr ' ' '\n' | ${runner})
 
@@ -43,4 +45,9 @@ fi
 
 run=$(echo ${options} | tr ' ' '\n' | ${runner} -p ${vm_name}-${prompt})
 
-${path}/${vm_name}/${run}
+# echo "${path}/${vm_name}/${run}"
+
+# ${path}/${vm_name}/${run}
+
+cd ${path}/${vm_name} && ./${run}
+

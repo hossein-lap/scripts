@@ -8,8 +8,9 @@
 
 set -e
 
-null=♦
+null='♦'
 test='1.1.1.1'
+sep="|"
 
 if [ -z ${1} ]; then
 	dev=enp46s0
@@ -21,12 +22,14 @@ mess=$(ping -c 1 ${test} \
 	| grep bytes \
 	| grep -v PING \
 	| awk -F '=' '{print $NF;}' \
-	| grep '^[0-9]')
+	| grep '^[0-9]' \
+	| awk '{print $1;}'
+)
 
-if [ $(echo $mess | awk '{print $NF}') = 'ms' ]; then
-	ping=$(echo "${mess}" | awk '{print $1"ms";}')
+if [ -z "${mess}" ]; then
+	ping="${null}"
 else
-	ping=
+	ping="${mess}ms"
 fi
 
 printf "${ping}"

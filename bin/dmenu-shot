@@ -74,27 +74,47 @@ case ${choice} in
 		# 	${mon} 'shots-%y%m%d_%H%M%S_$wx$h.png' \
 		# 	-e "mv \$f ${directory}/; r.sh nsxiv ${directory}/\$f; printf ${directory}/\$f | xclip -selection c "
 		# # }}}
-		# # vars {{{
-		# DemResTmp=$(xdpyinfo | grep dimensions | awk '{print $2;}')
-		# DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
-		# DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
-		#
-		# monitor=$(printf '%s\n' '↓' '↑' '↕' '→' \
-		# 		| ${runner} -p monitor)
-		#
-		# case ${monitor} in
-		# 	'↑') DemRes="-geometry ${DemResX}x${DemResY}+0+0" ;;
-		# 	'↓') DemRes="-crop ${DemResX}x${DemResY}+0+${DemResY}" ;;
-		# 	'↕') DemRes="-geometry ${DemResTmp}" ;;
-		# 	'—') notify "Shot cancelled" '' 1; exit 0; ;;
-		# 	*) notify "Shot cancelled" '' 1; exit 1; ;;
-		# esac
-		# # }}}
-		# ${shooter} ${DemRes} ${name}
+		# vars {{{
+		DemResTmp=$(xdpyinfo | grep dimensions | awk '{print $2;}')
+
+		monitor=$(printf '%s\n' '>' '<' 'v' '^' '*' \
+				| ${runner} -p monitor)
+
+		case ${monitor} in
+			'<')
+                DemResX=$(echo "${DemResTmp}" | sed -e 's/x.*//' -e 's/$/ \/ 2/' | bc)
+                DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//')
+                DemRes="-crop ${DemResX}x${DemResY}+0+0"
+                ;;
+			'>')
+                DemResX=$(echo "${DemResTmp}" | sed -e 's/x.*//' -e 's/$/ \/ 2/' | bc)
+                DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//')
+                DemRes="-crop ${DemResX}x${DemResY}+${DemResX}+0"
+                ;;
+			'^')
+                DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
+                DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
+                DemRes="-crop ${DemResX}x${DemResY}+0+0"
+                ;;
+			'v')
+                DemResX=$(echo "${DemResTmp}" | sed 's/x.*//')
+                DemResY=$(echo "${DemResTmp}" | sed -e 's/.*x//' -e 's/$/ \/ 2/' | bc)
+                DemRes="-crop ${DemResX}x${DemResY}+0+${DemResY}"
+                ;;
+			'*') DemRes="-crop ${DemResTmp}" ;;
+			'-') notify "Shot cancelled" '' 1; exit 0; ;;
+			*) notify "Shot cancelled" '' 1; exit 1; ;;
+		esac
+		# }}}
 		import -screen -window root ${name}
+        convert ${name} ${DemRes} ${name}
+        # imagemagick-round -i ${name} -o ${name} -r 10
+        # imagemagick-shadow -i ${name} -o ${name}
 		;;
 	active)
 		import -screen -window $(xdotool getactivewindow) ${name}
+        # imagemagick-round -i ${name} -o ${name} -r 10
+        # imagemagick-shadow -i ${name} -o ${name}
 		;;
 	select)
 		import ${name}
@@ -110,7 +130,7 @@ if [ -f "${name}" ]; then
 	echo "${name}" | tr -d '\n' | xclip -selection clipboard
 	short_name=$(echo "${name}" | xargs basename)
 	do_open=$(printf "No\nYes" | dmenu -p "Open ${short_name}?" -i)
-	[ "${do_open}" = 'Yes' ] && nsxiv "${name}"
+	[ "${do_open}" = 'Yes' ] && nsxiv -f "${name}"
 else
 	notify "Shot cancelled" \
 		'By keystroke or right-click' 1

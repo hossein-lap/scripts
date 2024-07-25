@@ -6,6 +6,23 @@
 # |_|   \___/ 
 #             
 
+
+update() {
+	# pid=$(pidof dwmblocks)
+	check=$(ps aux | grep -v grep | grep ' dwmblocks$')
+	pid=$(echo ${check} | awk '{print $2;}')
+	signal=$(echo "${1} + 31" | bc )
+
+	if [ ! -z "${check}" ]; then
+		# echo ${signal}
+		# exit 12
+		echo "kill -s ${signal} ${pid}"
+		kill -s ${signal} ${pid}
+	fi
+}
+
+update 9
+
 pached=$(dmenu -v | grep -c 'hos-patched')
 if [ ${pached} -eq 1 ]; then
 	# extratitle=$(mpc status '[%state%]')
@@ -14,7 +31,7 @@ if [ ${pached} -eq 1 ]; then
 		| sed 's/: /:/g' \
 		| awk '/^volume/ {print $1;}' \
 		| awk -F ':' '{print $2;}')
-	patches="-c -g 1 -bw 2 -l 8"
+	patches="-c -g 1 -bw 2 -l 10"
 fi
 status=$(mpc | tail -1 | sed -e 's/: /:/g')
 prompt='music'
@@ -140,3 +157,6 @@ case ${choice} in
 		notify -t "${trackname}" -s "${trackartist}" -b "[${tracktime}] \t\t [vol: ${trackvolume}]" -i ${theicon}
 		;;
 esac
+
+kill -s 40 $(pidof dwmblocks)
+

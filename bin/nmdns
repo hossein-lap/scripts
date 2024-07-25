@@ -1,24 +1,72 @@
 #!/bin/sh
 
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+reloaddwmblocks="kill -37 $(pidof dwmblocks)"
+# }}}
+
+# help function {{{
+help() {
+cat << EOF
+${prompt}: manage DNS using nmcli
+
+usage: [-hsep] [-print] [-i dns]
+
+   • arguemts:
+       -i         set specified DNS
+       -s         set Shekan
+       -e         set Electro
+       -h         print this message
+       -p -print  print current DNS
+
+   • example:
+       ${prompt} -i '8.8.8.8'
+
+   • running without any arguments will set DNS to 4.2.2.4
+EOF
+}
+# }}}
+
+# set function {{{
+setdns() {
+    verbose=false
+
+    case "${1}" in
+        -i) servers="${2}" ;;
+        -e) servers="78.157.42.101 78.157.42.100" ;;
+        -s) servers="178.22.122.100 185.51.200.2" ;;
+        -h) echo Help is not implemented yet; exit 6 ;;
+        *) servers="4.2.2.4" ;;
+    esac
+
+    [ ${verbose} = 'true' ] && printf '[DNS]: %s\n' ${servers}
+
+    nmcli -g name,type connection  show  --active \
+        | awk -F: '/ethernet|wireless/ { print $1; }' \
+        | while read connection; do
+        nmcli con mod "${connection}" ipv6.ignore-auto-dns yes
+        nmcli con mod "${connection}" ipv4.ignore-auto-dns yes
+        nmcli con mod "${connection}" ipv4.dns "${servers}"
+        nmcli con down "${connection}" && nmcli con up "${connection}"
+    done
+
+    # add 34 to your signal
+    ${reloaddwmblocks} 2>/dev/null
+}
+# }}}
+
+# print function {{{
+printdns() {
+    printf '[DNS]: %s\n' $(nmcli dev show \
+        | awk -F ':' '/IP4.DNS/ {print $NF;}' \
+        | sed 's/ //g')
+
+    # add 34 to your signal
+    ${reloaddwmblocks} 2>/dev/null
+}
+# }}}
+
 case "${1}" in
-	-i) servers="${2}" ;;
-	-e) servers="78.157.42.101 78.157.42.100" ;;
-	-s) servers="178.22.122.100 185.51.200.2" ;;
-	-h) echo Help is not implemented yet; exit 6 ;;
-	*) servers="4.2.2.4" ;;
+    -p|-print) printdns ;;
+    *) setdns ${1} ;;
 esac
-
-
-# add 34 to your signal
-kill -37 $(pidof dwmblocks) 2>/dev/null
-
-nmcli -g name,type connection  show  --active \
-	| awk -F: '/ethernet|wireless/ { print $1 }' \
-	| while read connection; do
-	# nmcli con mod "${connection}" ipv6.ignore-auto-dns yes
-	nmcli con mod "${connection}" ipv4.ignore-auto-dns yes
-	nmcli con mod "${connection}" ipv4.dns "${servers}"
-	nmcli con down "${connection}" && nmcli con up "${connection}"
-done
-
-kill -37 $(pidof dwmblocks) 2>/dev/null

@@ -17,6 +17,7 @@ prompt='kill'
 # }}}
 # launcher {{{
 runner="dmenu -l 25 -p ${prompt} ${patches} ${@}"
+# runner="fzf -m --reverse"
 # }}}
 # notification function {{{
 notify() {
@@ -45,7 +46,7 @@ notify() {
 #		| sed 's/• -/• /' \
 
 list=$( \
-	ps --cols 120 axo pid,%mem,%cpu,user,cmd k %cpu \
+	ps --cols 120 axo pid,%mem,%cpu,user,cmd --sort %cpu \
 		| grep -v '\[.*\]$' \
 		| ${runner} \
 		| awk '{print $1;}'
