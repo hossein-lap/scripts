@@ -10,6 +10,8 @@
 icon="imagemagick"
 stamp="$(date +%y%m%d_%H%M%S)"
 prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+ok='[DONE]'
+err='[FAIL]'
 # }}}
 ## help function {{{
 #help() {
@@ -39,10 +41,10 @@ prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
 # argument parsing {{{
 while [ "${#}" -gt 0 ]; do
 	case ${1} in
-#		-s|--style)
-#			style="${2}"
-#			shift
-#			;;
+		-o|--output)
+			output="${2}"
+			shift
+			;;
 		-i|--input)
 			images="${2}"
 			shift
@@ -108,19 +110,21 @@ notify() {
 }
 # }}}
 
+if [ -z "${output}" ]; then
+	name="screenshots_merged_${stamp}.png"
+else
+	name="${output}"
+fi
+
+printf '%s: %s ' ${prompt} ${name}
 ## conversion
-convert -append ${images} screenshots_merged_${stamp}.png >/dev/null 2>&1
+convert -append ${images} "${name}" >/dev/null 2>&1
 
 if [ $? -eq 0 ]; then
-	printf '✓\n'
+	printf '%s\n' ${ok}
+    exit 0
 else
-	printf '×\n'
+	printf '%s\n' ${err} 1>&2
+    exit 1
 fi
 
-## send notification if it was successful
-if [ "${?}" -eq 0 ]; then
-	if [ -f "screenshots_merged_${stamp}.png" ]; then
-		notify 'Images merged' \
-			"Output: ${PWD}/screenshots_merged_${stamp}.png"
-	fi
-fi

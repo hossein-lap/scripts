@@ -1,36 +1,234 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #  _  _ ___
 # | || | __| P
 # | __ | _|
 # |_||_|___| J
 #
 
-bg="#002b36"
-fg="#ccccee"
-input="${1}"
-output="${2}"
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+
+ok='[DONE]'
+err='[FAIL]'
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: create image from source code with syntax highlight
+
+usage: [-h] [-i input] [-o output] [-bg color] [-fg color] [-t theme]
+            [-f font] [-s size]
+
+   • arguemts:
+       -h --help         print this message
+       -i --input        intput x
+       -o --output       output y
+
+       -f --font         font name
+       -s --size         font size
+       -t --theme        highlight theme
+
+       -bg --background  background color
+       -fg --foreground  foreground color
+
+   • example:
+       ${prompt} -i file.c -o file.c.png -bg black -fg white -t solarized-dark -f 'Ubuntu Mono' -s 32
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+case ${1} in
+	-i|--input)
+		input="${2}"
+		shift
+		;;
+	-o|--output)
+		output="${2}"
+		shift
+		;;
+	-h|--help)
+		help
+		exit 0
+		;;
+	-g|--gradiant)
+        gradiant="true"
+		;;
+	-t|--theme)
+		theme="${2}"
+		shift
+		;;
+	-f|--font)
+		font="${2}"
+		shift
+		;;
+	-s|--size)
+		size="${2}"
+		shift
+		;;
+	-bg|--background)
+		bgcolor="${2}"
+		shift
+		;;
+	-fg|--foreground)
+		fgcolor="${2}"
+		shift
+		;;
+	-e|--extra)
+		extra="${2}"
+		shift
+		;;
+	*)
+		echo "Unknown parameter passed: ${1}"
+		exit 1
+		;;
+esac
+shift
+done
+
+# checking args {{{
+
+[ -f "${HOME}/.cache/wal/colors.sh" ] && source "${HOME}/.cache/wal/colors.sh"
+
+if [ -z "${input}" ]; then
+    printf '%s\n\n' "No input is specified" 1>&2
+    help
+    exit 1
+fi
+
+if [ -z "${output}" ]; then
+    printf '%s\n\n' "No output is specified" 1>&2
+    help
+    exit 2
+fi
+
+[ -z "${bgcolor}" ] && bgcolor="${background}"
+[ -z "${fgcolor}" ] && fgcolor="${foreground}"
+[ -z "${font}" ] && font="Monospace"
+[ -z "${size}" ] && size="32"
+[ -z "${color5}" ] && grad_first='#770000' || grad_first="${color5}"
+[ -z "${color4}" ] && grad_second='#ff7700' || grad_second="${color4}"
+
+[ -z "${theme}" ] && theme="edit-vim-dark"
+# theme="edit-vim-dark"
+# theme="xoria256"
+# theme="edit-godot"
+
+# }}}
+
+# }}}
+
+## launcher {{{
+# vars and args {{{
+#icon=""
+#path="${HOME}/.local/hos/chars/emoji.txt"
+#patched="-bw 0 -g 4 -l 10"
+#style=""
+#eargs=""
+# }}}
+#
+#if [ "${style}" = 'tui' ]; then
+#	runner="fzf -i -m \
+#			--reverse \
+#			--border=sharp \
+#			--info=inline \
+#			--prompt=: \
+#			--marker=* \
+#			--header=${prompt} --header-first \
+#			${args} \
+#			"
+#elif [ -z ${DISPLAY} ]; then
+#	runner="fzf -i -m \
+#			--reverse \
+#			--no-unicode \
+#			--info=inline \
+#			--border=sharp --border-label=${prompt} \
+#			--prompt=: \
+#			--marker=* \
+#			${args} \
+#			"
+#elif [ "${style}" = 'gui' ]; then
+#	runner="dmenu -l 9 -p ${prompt} ${patched} ${eargs}"
+#else
+#	runner="dmenu -l 9 -p ${prompt} ${patched} ${eargs}"
+#fi
+## }}}
+## notification function {{{
+#notify() {
+#	summary="${1}"
+#	if [ -z "${2}" ] || [ "${2}" = 1 ] || [ "${2}" = 2 ] || [ "${2}" = 3 ]; then
+#		case ${2} in
+#			1) mode=low ;;
+#			2) mode=normal ;;
+#			3) mode=critical ;;
+#			*) mode=normal ;;
+#		esac
+#		#msgbody="${3}"
+#	else
+#		case ${3} in
+#			1) mode=low ;;
+#			2) mode=normal ;;
+#			3) mode=critical ;;
+#			*) mode=normal ;;
+#		esac
+#		msgbody="${2}"
+#	fi
+#
+#	if [ ${mode} = 'critical' ]; then
+#		iferror="stderr"
+##		icon='error'
+#	else
+#		iferror="stdout"
+#	fi
+#
+#	if [ -n "${icon}" ]; then
+#		noticon="-i ${icon}"
+#	fi
+#
+#	if [ "${style}" = 'tui' ]; then
+#		printf '[%s] %s\n' "${summary}" "${msgbody}" "${iferror}"
+#	elif [ -z "${DISPLAY}" ]; then
+#		echo "${@}" >/dev/null 2>&1
+#	else
+#		notify-send -a "${prompt}" -u ${mode} ${noticon} \
+#			"${summary}" "${msgbody}" 2>/dev/null
+#		printf '[%s] %s\n' "${summary}" "${msgbody}" >/dev/${iferror}
+#	fi
+#}
+## }}}
 
 highlight \
 		-i "${input}" \
 		-O pango \
 		-P \
-		-T "This is a simple test!" \
+        ${extra} \
 		-l \
 		-j 5 \
-		-k "Fira Mono" \
-		-K 38 \
-		-s solarized-dark \
+		-k "${font}" \
+		-K ${size} \
+		-s ${theme} \
 		-t 4 \
-	| convert \
-		-background "${bg}" \
-		-fill "${fg}" \
+    | $(which convert || which magick) \
+		-background "${bgcolor}" \
+		-fill "${fgcolor}" \
 		pango:@- \
-		-size 800x \
+		-size 800x1000 \
 		-background none \
 		"${output}"
 
 imagemagick-trim -i "${output}" -o "${output}"
-imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 50 -bc "${bg}"
+imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 50 -bc "${bgcolor}"
 imagemagick-trim -i "${output}" -o "${output}"
-~/dev/primejade/hos-workflow/scripts/imagemagick-round -i "${output}" -o "${output}" -r 30
-~/dev/primejade/hos-workflow/scripts/imagemagick-gradiant -i "${output}" -o "${output}"
+imagemagick-round -i "${output}" -o "${output}" -r 15
+
+if [ ! -z ${gradiant} ]; then
+    imagemagick-gradiant -i "${output}" -o "${output}" -cf "${grad_first}" -cs "${grad_second}"
+fi
+
+if [ $? -eq 0 ]; then
+	printf "${prompt}: ${input} => ${output} %s\n" ${ok}
+else
+	printf "${prompt}: ${input} => ${output} %s\n" ${err} > /dev/stderr
+fi

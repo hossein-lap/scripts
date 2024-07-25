@@ -20,6 +20,9 @@ x=$(echo ${dmax} | sed 's/x.*//')
 y=$(echo ${dmax} | sed 's/.*x//')
 midx=$(echo "${x} / 2 " | bc)
 midy=$(echo "${y} / 2 " | bc)
+
+ok='[DONE]'
+err='[FAIL]'
 # }}}
 
 # circle {{{
@@ -35,8 +38,8 @@ circle() {
 		-channel-fx '| gray=>alpha'\
 		${oname}
 
-	${path}/imtrim.sh ${oname}
-	${path}/imshadow.sh ${oname}
+	${path}/imagemagick-shadow -i ${oname}
+	${path}/imagemagick-trim -i ${oname}
 }
 # }}}
 
@@ -54,8 +57,8 @@ square() {
 		-channel-fx '| gray=>alpha'\
 		${oname}
 
-	${path}/imshadow.sh ${oname}
-	${path}/imtrim.sh ${oname}
+	${path}/imagemagick-shadow -i ${oname}
+	${path}/imagemagick-trim -i ${oname}
 }
 # }}}
 

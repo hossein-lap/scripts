@@ -6,14 +6,17 @@
 # |_|   \___/ 
 #             
 
-## varaibles {{{
-#icon=""
-#path="${HOME}/.local/hos/chars/emoji.txt"
+# varaibles {{{
+# icon=""
+# path="${HOME}/.local/hos/chars/emoji.txt"
 prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
-#patched="-bw 0 -g 4 -l 10"
-#style=""
-#eargs=""
-## }}}
+# patched="-bw 0 -g 4 -l 10"
+# style=""
+# eargs=""
+
+ok='[DONE]'
+err='[FAIL]'
+# }}}
 # help function {{{
 help() {
 cat << EOF
@@ -85,9 +88,9 @@ if [ "${loopit}" = 'true' ]; then
 		convert -trim ${input} ${output}
 
 		if [ $? -eq 0 ]; then
-			printf '✓\n'
+			printf '%s\n' ${ok}
 		else
-			printf '×\n'
+			printf '%s\n' ${err} 1>&2
 		fi
 	done
 else
@@ -96,8 +99,8 @@ else
 	convert -trim ${input} ${output}
 
 	if [ $? -eq 0 ]; then
-		printf '✓\n'
+		printf '%s\n' ${ok}
 	else
-		printf '×\n'
+		printf '%s\n' ${err} 1>&2
 	fi
 fi

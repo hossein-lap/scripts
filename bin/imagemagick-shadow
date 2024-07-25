@@ -8,6 +8,9 @@
 
 # varaibles {{{
 prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+
+ok='[DONE]'
+err='[FAIL]'
 # }}}
 # help function {{{
 help() {
@@ -145,7 +148,7 @@ $(which convert) \
 	2>/dev/null
 
 if [ $? -eq 0 ]; then
-	printf "${output} ✓\n"
+	printf "${output} %s\n" ${ok}
 else
-	printf "${output} ×\n"
+	printf "${output} %s\n" ${err} 1>&2
 fi

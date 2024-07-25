@@ -7,6 +7,9 @@
 
 # varaibles {{{
 prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+
+ok='[DONE]'
+err='[FAIL]'
 # }}}
 # help function {{{
 help() {
@@ -18,12 +21,12 @@ usage: [-h] [-i input] [-o output]
    • arguemts:
        -i --input      intput x
        -o --output     output y
-       -r --round      border rounding percentage
+       -r --round      border rounding percentage (default 25)
        -e --args       extra args (to pass to the launcher)
        -h --help       print this message
 
    • example:
-       ${prompt} -i in -o out
+       ${prompt} -i in -o out -r 15
 
    • running without any arguments will show this message
 EOF
@@ -83,14 +86,16 @@ sqrp="${persent}"
 
 ## get dementions:
 # identify "${input}" | awk '{print $3;}'
-dxmax=$(identify ${input} \
+tmp=$(identify ${input})
+dxmax=$(echo ${tmp} \
 	| awk '{print $3;}' \
 	| awk -F 'x' '{print $1;}')
 
-dymax=$(identify ${input} \
+dymax=$(echo ${tmp} \
 	| awk '{print $3;}' \
 	| awk -F 'x' '{print $2;}')
 
+printf '%s: %s => %s ' ${prompt} ${input} ${output}
 convert \
 	${input} \( \
 		+clone \
@@ -101,4 +106,12 @@ convert \
 	\) \
 	-channel-fx '| gray=>alpha'\
 	${output}
+
+if [ $? -eq 0 ]; then
+    printf '%s\n' ${ok}
+    exit 0
+else
+    printf '%s\n' ${err} 1>&2
+    exit 1
+fi
 

@@ -7,6 +7,9 @@
 
 # varaibles {{{
 prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+
+ok='[DONE]'
+err='[FAIL]'
 # }}}
 # help function {{{
 help() {

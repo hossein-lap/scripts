@@ -1,0 +1,43 @@
+#!/bin/sh
+
+timestamp=$(date '+%y%m%d_%H%M')
+dirname="/tmp/imagemagick-unixporn"
+prompt=$(echo $0 | awk -F '/' '{print $NF;}')
+output="shot-unixporn-output-${timestamp}.png"
+ok='[DONE]'
+err='[FAIL]'
+
+if [ ! -d ${dirname} ]; then
+    mkdir ${dirname}
+fi
+
+for i in ${@}; do
+    o=$(echo ${i} | sed 's/\.png$/-round.png/')
+    imagemagick-round -i ${i} -o ${dirname}/${o} -r 15
+done
+
+for i in $(find ${dirname} -name '*-round.png'); do
+    o=$(echo ${i} | sed 's/round/shadow/')
+    imagemagick-shadow -i ${i} -o ${o}
+done
+
+imagemagick-append -i "${*}" -o ${dirname}/tmp-merged.png
+imagemagick-append -i "$(find ${dirname} -name '*-shadow.png')" \
+    -o ${dirname}/shadow-merged.png
+
+imagemagick-blur -i ${dirname}/tmp-merged.png -o ${dirname}/tmp-blur.png \
+    -b 3 -r 3 -s 3
+
+printf '%s: %s ' ${prompt} ${output}
+convert ${dirname}/tmp-blur.png ${dirname}/shadow-merged.png -gravity center \
+    -composite ${output}
+
+if [ $? -eq 0 ]; then
+    rm -rf ${dirname}
+	printf '%s\n' ${ok}
+    exit 0
+else
+	printf '%s\n' ${err} 1>&2
+    exit 1
+fi
+
