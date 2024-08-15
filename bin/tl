@@ -1,6 +1,6 @@
 #!/bin/sh
 
-fzf="fzf -i --border=sharp --prompt=: --info=inline --header-first --header Sessions"
+fzf="fzf -i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessions --height 10% --reverse"
 list=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}')
 
 if [ -z "${list}" ]; then

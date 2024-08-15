@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-fzf="fzf -i --border=sharp --prompt=: --info=inline --header-first --header Sessionzer"
+fzf="fzf -i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessionizer --height 10% --reverse"
 
 session=$({ \
 	find \

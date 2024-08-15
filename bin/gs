@@ -1,0 +1,41 @@
+#!/bin/sh
+
+list="add commit remove branch stash diff log"
+
+runner="fzf"
+args="-i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessions --height 10% --reverse"
+
+set_user() {
+    options="hos pj"
+    choice=$(echo ${options} | tr ' ' '\n' | ${runner} ${args} --header 'git user/email config')
+
+    case ${choice} in
+        hos)
+            git config user.name  'Hossein Esmail'
+            git config user.email 'hosteam01@gmail.com'
+            ;;
+        pj)
+            git config user.name  'primejade'
+            git config user.email 'primejade@proton.me'
+            ;;
+        *)
+            echo Nothing has changed
+            exit 0
+            ;;
+    esac
+    
+    if [ $? -eq 0 ]; then
+        printf 'gs: git user set: %s\n' ${choice}
+    else
+        exit 1
+    fi
+}
+
+main() {
+    options="hos pj"
+    choice=$(echo ${options} | tr ' ' '\n' | ${runner} ${args} --header 'git options')
+    echo ${choice}
+}
+
+set_user
+

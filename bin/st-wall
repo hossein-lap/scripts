@@ -19,7 +19,7 @@ name="${HOME}/.local/share/dwm/background"
 
 	jpg2ff < ${name}.jpg \
 		| ff-border e 50 \
-		| ff-bright rgba 0 0.2 1 \
+		| ff-bright rgba 0 0.3 1 \
 		| ff-blur 50 05 > ${name}.ff
 
 # fi
