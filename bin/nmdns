@@ -32,7 +32,17 @@ setdns() {
     verbose=false
 
     case "${1}" in
-        -i) servers="${2}" ;;
+        -i)
+            shift
+            if [ "${#}" -gt 0 ]; then
+                servers="${@}"
+            else
+                printf '%s %s\n' \
+                    "${prompt}: WARNING: no DNS were provided" \
+                    "falling back to defaults" > /dev/stderr
+                servers="8.8.8.8 4.2.2.4"
+            fi
+            ;;
         -e) servers="78.157.42.101 78.157.42.100" ;;
         -s) servers="178.22.122.100 185.51.200.2" ;;
         -h) echo Help is not implemented yet; exit 6 ;;
@@ -70,5 +80,5 @@ printdns() {
 
 case "${1}" in
     -p|-print) printdns ;;
-    *) setdns ${1} ;;
+    *) setdns ${@} ;;
 esac
