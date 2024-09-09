@@ -26,6 +26,7 @@ usage: [-h] [-i input] [-o output] [-bg color] [-fg color] [-t theme]
 
        -f --font         font name
        -s --size         font size
+       -b --border       border size
        -t --theme        highlight theme
 
        -bg --background  background color
@@ -49,12 +50,15 @@ case ${1} in
 		output="${2}"
 		shift
 		;;
+	-l|--linenu)
+		linenu='-l'
+		;;
 	-h|--help)
 		help
 		exit 0
 		;;
 	-g|--gradiant)
-        gradiant="true"
+		gradiant="true"
 		;;
 	-t|--theme)
 		theme="${2}"
@@ -76,6 +80,14 @@ case ${1} in
 		fgcolor="${2}"
 		shift
 		;;
+	-ft|--frametitle)
+		ftcolor="${2}"
+		shift
+		;;
+	-b|--border)
+		border="${2}"
+		shift
+		;;
 	-e|--extra)
 		extra="${2}"
 		shift
@@ -88,35 +100,43 @@ esac
 shift
 done
 
+# }}}
+
 # checking args {{{
 
 [ -f "${HOME}/.cache/wal/colors.sh" ] && source "${HOME}/.cache/wal/colors.sh"
 
 if [ -z "${input}" ]; then
-    printf '%s\n\n' "No input is specified" 1>&2
-    help
-    exit 1
+	printf '%s\n\n' "No input is specified" 1>&2
+	help
+	exit 1
 fi
 
 if [ -z "${output}" ]; then
-    printf '%s\n\n' "No output is specified" 1>&2
-    help
-    exit 2
+	printf '%s\n\n' "No output is specified" 1>&2
+	help
+	exit 2
 fi
 
 [ -z "${bgcolor}" ] && bgcolor="${background}"
 [ -z "${fgcolor}" ] && fgcolor="${foreground}"
+[ -z "${brcolor}" ] && brcolor="#0f0f0f"
+[ -z "${bgcolor}" ] && bgcolor="#151515"
+[ -z "${fgcolor}" ] && fgcolor="#ccccce"
+[ -z "${ftcolor}" ] && ftcolor="#0f0f0f"
 [ -z "${font}" ] && font="Monospace"
-[ -z "${size}" ] && size="32"
+[ -z "${size}" ] && size="22"
+[ -z "${border}" ] && border="25"
+[ -z "${lastborder}" ] && lastborder=$(echo "${border} / 2" | bc)
 [ -z "${color5}" ] && grad_first='#770000' || grad_first="${color5}"
 [ -z "${color4}" ] && grad_second='#ff7700' || grad_second="${color4}"
 
-[ -z "${theme}" ] && theme="edit-vim-dark"
+[ -z "${theme}" ] && theme="rdark"
+# theme="rdark"
+# theme="base16/tomorrow-night"
 # theme="edit-vim-dark"
 # theme="xoria256"
 # theme="edit-godot"
-
-# }}}
 
 # }}}
 
@@ -203,14 +223,14 @@ highlight \
 		-i "${input}" \
 		-O pango \
 		-P \
-        ${extra} \
-		-l \
+		${extra} \
+		"${linenu}" \
 		-j 5 \
 		-k "${font}" \
-		-K ${size} \
-		-s ${theme} \
+		-K "${size}" \
+		-s "${theme}" \
 		-t 4 \
-    | $(which convert || which magick) \
+	| $(which convert || which magick) \
 		-background "${bgcolor}" \
 		-fill "${fgcolor}" \
 		pango:@- \
@@ -219,12 +239,22 @@ highlight \
 		"${output}"
 
 imagemagick-trim -i "${output}" -o "${output}"
-imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 50 -bc "${bgcolor}"
+imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sr 0 -sc none -bw ${border} -bc "${bgcolor}"
+imagemagick-title -i "${output}" -o "${output}" -t "${input}" -bg "${brcolor}" # -s ${size} -w
+imagemagick-round -i "${output}" -o "${output}" -r 5
 imagemagick-trim -i "${output}" -o "${output}"
-imagemagick-round -i "${output}" -o "${output}" -r 15
+imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 2 -bc "${brcolor}"
+imagemagick-trim -i "${output}" -o "${output}"
+imagemagick-round -i "${output}" -o "${output}" -r 5
+
+# ${dir}/imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sr 0 -sc none -bw ${border} -bc "${bgcolor}"
+# ${dir}/imagemagick-extend ${output} ${output} 
+# ${dir}/imagemagick-round -i "${output}" -o "${output}" -r 15
+# ${dir}/imagemagick-trim -i "${output}" -o "${output}"
+# ${dir}/imagemagick-round -i "${output}" -o "${output}" -r 15
 
 if [ ! -z ${gradiant} ]; then
-    imagemagick-gradiant -i "${output}" -o "${output}" -cf "${grad_first}" -cs "${grad_second}"
+	imagemagick-gradiant -i "${output}" -o "${output}" -cf "${grad_first}" -cs "${grad_second}" -sw 320 -br 200
 fi
 
 if [ $? -eq 0 ]; then

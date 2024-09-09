@@ -5,7 +5,7 @@ names=$(ps aux \
 	| grep qemu-system \
 	| grep ${HOME}/.local/virtual-machines \
 	| awk -F '=' '{print $3;}' \
-	| awk -F '.' '{print $1;}' \
+    | sed 's/\.img,.*//' \
 )
 
 # printf 'v:%s,%s' ${names}

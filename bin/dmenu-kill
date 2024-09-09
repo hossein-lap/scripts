@@ -45,9 +45,10 @@ notify() {
 #		| sed 's/  \\_ /  • /' \
 #		| sed 's/• -/• /' \
 
+	# ps --cols 120 axo pid,%mem,%cpu,user,cmd --sort %cpu \
+		# | grep -v '\[.*\]$' \
 list=$( \
-	ps --cols 120 axo pid,%mem,%cpu,user,cmd --sort %cpu \
-		| grep -v '\[.*\]$' \
+    top -b -n 1 -c -w 150 \
 		| ${runner} \
 		| awk '{print $1;}'
 

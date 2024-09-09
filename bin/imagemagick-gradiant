@@ -32,6 +32,7 @@ usage: [-hf] [-i input] [-o output] [-bg color] [-sc color] [-bc color]
 
        -x  --sxpos        shadow x position (default: 1)
        -y  --sypos        shadow y position (default: 1)
+       -sh --shadow       add shadow
        -sr --srate        shadow expand rate (default: 10)
        -sw --swidth       shadow width (default: 110)
        -sc --scolor       set shadow color (default: black)
@@ -54,8 +55,8 @@ while [ "${#}" -gt 0 ]; do
 		-o|--output)       output="${2}";            shift  ;;
 		-f|--force)        force_replace='true';     shift  ;;
 
-        -cf|--colorfirst)  colorfirst="${2}";        shift  ;;
-        -cs|--colorsecond) colorsecond="${2}";       shift  ;;
+		-cf|--colorfirst)  colorfirst="${2}";        shift  ;;
+		-cs|--colorsecond) colorsecond="${2}";       shift  ;;
 
 		-bg|--background)  background_color="${2}";  shift  ;;
 
@@ -63,13 +64,14 @@ while [ "${#}" -gt 0 ]; do
 		-bw|--bwidth)      border_width="${2}";      shift  ;;
 		-br|--brate)       border_rate="${2}";       shift  ;;
 
-		-x|--sxpos)        x="${2}";                 shift  ;;
-		-y|--sypos)        y="${2}";                 shift  ;;
-		-sr|--srate)       shadow_rate="${2}";       shift  ;;
-		-sc|--scolor)      shadow_color="${2}";      shift  ;;
-		-sw|--swidth)      shadow_width="${2}";      shift  ;;
+		-x|--sxpos)     x="${2}";                 shift  ;;
+		-y|--sypos)     y="${2}";                 shift  ;;
+		-sh|--shadow)   shadow='true';            shift  ;;
+		-sr|--srate)    shadow_rate="${2}";       shift  ;;
+		-sc|--scolor)   shadow_color="${2}";      shift  ;;
+		-sw|--swidth)   shadow_width="${2}";      shift  ;;
 
-		-h|--help)         help;                     exit 0 ;;
+		-h|--help)      help;                     exit 0 ;;
 		*)  echo "Unknown parameter passed: ${1}";   exit 1 ;;
 	esac
 	shift
@@ -100,12 +102,12 @@ if [ -z "${output}" ]; then
 fi
 
 if [ -z "${colorfirst}" ]; then
-	# colorfirst='#ff5577'
-	colorfirst='#ff7700'
+	colorfirst='#ff5577'
+	# colorfirst='#770000'
 fi
 
 if [ -z "${colorsecond}" ]; then
-	colorsecond='#770000'
+	colorsecond='#ff7700'
 fi
 
 if [ -z "${shadow_color}" ]; then
@@ -121,7 +123,7 @@ if [ -z "${border_width}" ]; then
 fi
 
 if [ -z "${border_rate}" ]; then
-	border_rate="40"
+	border_rate="90"
 fi
 
 if [ -z "${border_color}" ]; then
@@ -173,23 +175,32 @@ resY=$( expr $(echo ${res} | awk -F 'x' '{print $2;}') + ${border_rate} )
 #
 # exit 142
 
+tmpfile="/tmp/im-tmp-gradiant.png"
+
 $(which convert) \
 	-size ${resX}x${resY} \
 	gradient:"${colorfirst}-${colorsecond}" \
-	${input} \
+	xc: \
 	-bordercolor ${border_color} \
-	-border ${border_width} \( \
-		+clone \
-		-background ${shadow_color} \
-		-shadow ${shadow_width}x${shadow_rate}+${x}+${y} \
-	\) \
-	+swap -background ${background_color} \
-	-layers merge +repage \
-	${output} \
-	# 2>/dev/null
+	-border ${border_width} \
+	+swap \
+	-background ${background_color} \
+	-layers merge \
+	+repage \
+	/tmp/im-tmp-gradiant.png
+
+imagemagick-shadow -i ${input} -o ${output} -sr 45 -sw 80
+if [ -n "${shadow}" ]; then
+	imagemagick-shadow -i ${output} -o ${output} -sr 45 -sw 80
+fi
+imagemagick-merge -i "${output} ${tmpfile}" -o ${output}
 
 if [ $? -eq 0 ]; then
 	printf "${output} %s\n" ${ok}
 else
 	printf "${output} %s\n" ${err} > /dev/stderr
 fi
+
+rm ${tmpfile} 2>/dev/null
+
+

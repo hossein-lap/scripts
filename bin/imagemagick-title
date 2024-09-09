@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+#  _  _ ___
+# | || | __| P
+# | __ | _|
+# |_||_|___| J
+#
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: what problem is this script solving
+
+usage: [-h] [-i input] [-o output]
+
+   • arguemts:
+       -i --input      intput x
+       -o --output     output y
+       -s --style      launcher style
+       -e --args       extra args (to pass to the launcher)
+       -h --help       print this message
+
+   • example:
+       ${prompt} -i in -o out
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+case ${1} in
+	-i|--input)
+		input="${2}"
+		shift
+		;;
+	-o|--output)
+		output="${2}"
+		shift
+		;;
+	-h|--help)
+		help
+		exit 0
+		;;
+	-w|--window)
+		window="true"
+		;;
+	-t|--title)
+		title="${2}"
+		shift
+		;;
+    -bg|--background)
+        bgcolor="${2}"
+        shift
+        ;;
+    -fg|--foreground)
+        fgcolor="${2}"
+        shift
+        ;;
+    -f|--font)
+        font="${2}"
+        shift
+        ;;
+    -v|--vertical)
+        vert="${2}"
+        shift
+        ;;
+    -s|--size)
+        size="${2}"
+        shift
+        ;;
+	-a|--args)
+		args="${2}"
+		shift
+		;;
+	*)
+		echo "Unknown parameter passed: ${1}"
+		exit 1
+		;;
+esac
+shift
+done
+
+# checking args {{{
+if [ -z "${input}" ]; then
+    printf '%s\n\n' "No input is specified" 1>&2
+    help
+    exit 1
+fi
+
+if [ -z "${output}" ]; then
+    printf '%s\n\n' "No output is specified" 1>&2
+    help
+    exit 2
+fi
+
+[ -z "${bgcolor}" ] && bgcolor="#232323"
+[ -z "${tmpcolor}" ] && tmpcolor="#333339"
+# [ -z "${brcolor}" ] && brcolor="#232323"
+[ -z "${fgcolor}" ] && fgcolor="#d3d3d3"
+# [ -z "${button_color_close}" ] && button_color_close="#ff5f56"
+# [ -z "${button_color_maximize}" ] && button_color_maximize="#5fc451"
+# [ -z "${button_color_minimize}" ] && button_color_minimize="#ffbd2e"
+[ -z "${button_color_close}" ] && button_color_close="#9999A0"
+[ -z "${button_color_maximize}" ] && button_color_maximize="#9999A0"
+[ -z "${button_color_minimize}" ] && button_color_minimize="#9999A0"
+[ -z "${font}" ] && font="Ubuntu-Medium"
+[ -z "${title}" ] && title="Source Code"
+[ -z "${size}" ] && size="18"
+[ -z "${vert}" ] && vert="-0"
+# }}}
+# }}}
+
+res=$(identify ${input}| awk '{print $3;}')
+resx=$(echo "${res}" | cut -dx -f1)
+resy=$(echo "${res}" | cut -dx -f2)
+resxout=$(echo "${resx} + 14" | bc)
+resyout=$(echo "${resy} + 14" | bc)
+width="${resx}"
+height=$(echo "${size} + ${size}" | bc)
+
+printf '%s: %s <%s> %s ' ${prompt} ${input} ${title} ${output}
+
+tmpfile_bar="/tmp/im-tmp-title-bar.png"
+tmpfile_action="/tmp/im-tmp-title-action.png"
+
+convert \
+    -size ${width}x${height} \
+	gradient:"${tmpcolor}-${bgcolor}" \
+    -font ${font} \
+    -pointsize ${size} \
+    -fill ${fgcolor} \
+    -gravity center \
+    -annotate +000${vert} "${title}" \
+    ${tmpfile_bar}
+
+# exit 139
+
+# TODO: add details about circles coordinates
+#     : circle x,y x,y
+convert \
+    ${tmpfile_bar} \
+    -fill ${button_color_close} -draw "circle 20,19 27,19" \
+    -fill ${button_color_minimize} -draw "circle 44,19 51,19" \
+    -fill ${button_color_maximize} -draw "circle 68,19 75,19" \
+    ${tmpfile_action}
+
+convert \
+    -append \
+        ${tmpfile_action} \
+        ${input}\
+    ${output}
+
+[ $? -eq 0 ] && echo '[DONE]' || echo '[FAIL]'

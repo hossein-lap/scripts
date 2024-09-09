@@ -21,7 +21,7 @@ lip=$(ip a \
 if [ -z "${lip}" ]; then
 	printf "♦"
 else
-	lip="$(echo ${lip} | sed 's/192.168./../')"
+	# lip="$(echo ${lip} | awk -F '.' '{print $3"."$4}')"
 	name="$(echo ${1} | cut -c1-1)"
 	printf "${name}:${lip}"
 fi

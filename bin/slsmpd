@@ -6,7 +6,7 @@
 # |_|   \___/ 
 #             
 
-set -e
+# set -e
 
 # mpd_status {{{
 mpd_status() {
@@ -17,7 +17,7 @@ mpd_status() {
 	case ${mpdstatus} in
 		playing) mpd=">${mpdtracks}" ;;
 		paused)  mpd="=${mpdtracks}" ;;
-		*) mpd='' ;;
+		*) mpd='♦' ;;
 	esac
 
 	if [ -z "${mpd}" ]; then

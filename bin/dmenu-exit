@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #  ____     _ 
 # |  _ \   | |
 # | |_) |  | |
@@ -6,7 +6,7 @@
 # |_|   \___/ 
 #             
 
-set -e
+# set -e
 
 # argument parsing {{{
 while [ "${#}" -gt 0 ]; do
@@ -118,7 +118,7 @@ double_check=$(printf 'no\nyes' | ${runner} ${args})
 
 SUDO_ASKPASS=$(which dmenupass)
 
-if [ ${double_check} = 'yes' ]; then
+if [ "${double_check}" = 'yes' ]; then
 	case $choice in
 		poweroff) sleep .5; ${ctl} poweroff ;;
 		reboot) sleep .5; ${ctl} reboot ;;

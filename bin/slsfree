@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cpu=$(top -b -n1 | grep "Cpu(s)" | awk '{print $2 + $4}';)
+mem=$(free -h | awk '/^Mem/ { print $3; }' | tr -d '\n')
+swp=$(free -h | awk '/^Swap/ { print $3; }' | tr -d '\n')
+
+printf 'swp:%s ram:%s cpu:%s' ${swp} ${mem} ${cpu}
