@@ -49,6 +49,9 @@ while [ "${#}" -gt 0 ]; do
 			images="${2}"
 			shift
 			;;
+		-v|--vertical)
+			vertical="true"
+			;;
 #		-h|--help)
 #			help
 #			exit 0
@@ -118,7 +121,11 @@ fi
 
 printf '%s: %s ' ${prompt} ${name}
 ## conversion
-convert -append ${images} "${name}" >/dev/null 2>&1
+if [ -z "${vertical}" ]; then
+    convert -append ${images} "${name}" >/dev/null 2>&1
+else
+    convert +append ${images} "${name}" >/dev/null 2>&1
+fi
 
 if [ $? -eq 0 ]; then
 	printf '%s\n' ${ok}
