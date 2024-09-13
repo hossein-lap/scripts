@@ -60,6 +60,17 @@ case ${1} in
 	-g|--gradiant)
 		gradiant="true"
 		;;
+	-r|--rgradiant)
+		rgradiant="true"
+		;;
+	-gh|--gradheight)
+		grad_height="${2}"
+		shift
+		;;
+	-gw|--gradwidth)
+		grad_width="${2}"
+		shift
+		;;
 	-t|--theme)
 		theme="${2}"
 		shift
@@ -80,8 +91,12 @@ case ${1} in
 		fgcolor="${2}"
 		shift
 		;;
-	-ft|--frametitle)
+	-fc|--framecolor)
 		ftcolor="${2}"
+		shift
+		;;
+	-ft|--frametitle)
+		frametitle="${2}"
 		shift
 		;;
 	-b|--border)
@@ -124,8 +139,12 @@ fi
 [ -z "${bgcolor}" ] && bgcolor="#151515"
 [ -z "${fgcolor}" ] && fgcolor="#ccccce"
 [ -z "${ftcolor}" ] && ftcolor="#0f0f0f"
+[ -z "${fttitle}" ] && fttitle="${input}"
 [ -z "${font}" ] && font="Monospace"
 [ -z "${size}" ] && size="22"
+[ -z "${border}" ] && border="25"
+[ -z "${grad_width}" ] && grad_width="200"
+[ -z "${grad_height}" ] && grad_height="320"
 [ -z "${border}" ] && border="25"
 [ -z "${lastborder}" ] && lastborder=$(echo "${border} / 2" | bc)
 [ -z "${color5}" ] && grad_first='#770000' || grad_first="${color5}"
@@ -240,7 +259,7 @@ highlight \
 
 imagemagick-trim -i "${output}" -o "${output}"
 imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sr 0 -sc none -bw ${border} -bc "${bgcolor}"
-imagemagick-title -i "${output}" -o "${output}" -t "${input}" -bg "${brcolor}" # -s ${size} -w
+imagemagick-title -i "${output}" -o "${output}" -t "${frametitle}" -bg "${brcolor}" # -s ${size} -w
 imagemagick-round -i "${output}" -o "${output}" -r 5
 imagemagick-trim -i "${output}" -o "${output}"
 imagemagick-shadow -i "${output}" -o "${output}" -sw 0 -sc none -bw 2 -bc "${brcolor}"
@@ -253,8 +272,12 @@ imagemagick-round -i "${output}" -o "${output}" -r 5
 # ${dir}/imagemagick-trim -i "${output}" -o "${output}"
 # ${dir}/imagemagick-round -i "${output}" -o "${output}" -r 15
 
-if [ ! -z ${gradiant} ]; then
-	imagemagick-gradiant -i "${output}" -o "${output}" -cf "${grad_first}" -cs "${grad_second}" -sw 320 -br 200
+if [ ! -z "${gradiant}" ]; then
+    if [ -z "${rgradiant}" ]; then
+        imagemagick-gradiant -i "${output}" -o "${output}" -cf "${grad_first}" -cs "${grad_second}" -sw ${grad_height} -br ${grad_width}
+    else
+        imagemagick-gradiant -i "${output}" -o "${output}" -cs "${grad_first}" -cf "${grad_second}" -sw ${grad_height} -br ${grad_width}
+    fi
 fi
 
 if [ $? -eq 0 ]; then

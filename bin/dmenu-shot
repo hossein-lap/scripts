@@ -44,7 +44,7 @@ runner="dmenu \
 
 # main choice
 choice=$(printf '%s\n' \
-	"whole screen" "active window" "select area" "quit" \
+	"active window" "whole screen" "select area" "quit" \
 		| ${runner} \
 		| awk '{print $1}')
 
