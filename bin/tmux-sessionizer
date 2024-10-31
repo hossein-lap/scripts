@@ -1,41 +1,36 @@
 #!/usr/bin/env bash
 
-fzf="fzf -i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessionizer --height 10% --reverse"
+fzf="fzf -i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessionizer --height 50% --reverse"
 
-session=$({ \
-	find \
-		~/dev/primejade/ ~/w ~/documents/ ~/dev/soda-sh/ ~ \
-		-maxdepth 2 \
-		-mindepth 1 \
-		-type d; \
-	find ~/dev/hossein-lap/ \
+directory=$({ \
+	find ~/work ~/personal/ ~/w ~/vm \
 		-maxdepth 1 \
 		-mindepth 1 \
 		-type d; \
-	} | grep -v '\.git' | ${fzf})
+	} | grep -v '\.git\/' | ${fzf})
 
-if [ -z "${session}" ]; then
-	exit 17
+if [ -z "${directory}" ]; then
+	exit $LINENO
 else
-	inside=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}' | grep -c ${session})
-	if [ "${inside}" != '0' ]; then
-		session_name=${session}
-	else
-		session_name=$(basename $(dirname ${session}))/$(basename ${session})
-	fi
-	session_name=$(echo "${session_name}" | tr . _)
+	session_name="$(basename $(dirname ${directory}))/$(basename ${directory} | tr . _)"
 fi
 
-if [ -n "${session}" ]; then
-	if ! tmux has-session -t "${session_name}" 2>/dev/null; then
-		tmux new-session -s "${session_name}" -c "${session}" -d
+
+if [ -n "${directory}" ]; then
+	exists=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}' | grep -c "\\b${session_name}\\b")
+
+	# printf '[%s]\n' ${exists} ${directory} ${session_name} ${TMUX}
+	# exit $LINENO
+
+	if [ "${exists}" == '0' ]; then
+		tmux new-session -s "${session_name}" -c "${directory}" -d
 	fi
 
-	if [ -z "${TMUX}" ]; then
-		tmux att -t ${session_name}
+	if [ "${TMUX}" != '' ]; then
+		tmux switch-client -t ${session_name}
 	else
-		tmux switchc -t ${session_name}
+		tmux attach-session -t ${session_name}
 	fi
 else
-	exit 34
+	exit $LINENO
 fi

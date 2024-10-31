@@ -104,10 +104,22 @@ done
 
 ## Ascii art arms
 #codename=$(lsb_release -i | awk '{print $NF;}')
-codename='void'
+codename='mint'
 # codename=$(awk -F '=' '/^ID=/ {print $NF;}' /etc/os-release)
 
 case $codename in
+[mM]int)
+cat <<EOF
+$PADCC$PBLD${PGRN}              ___________
+$PADCC             |_          \\
+$PADCC               | ${PWHT}| _____ ${PGRN}|
+$PADCC               | ${PWHT}| | | | ${PGRN}|
+$PADCC               | ${PWHT}| | | | ${PGRN}|
+$PADCC               | ${PWHT}\_____/ ${PGRN}|
+$PADCC               \_________/$PADCC
+
+EOF
+;;
 [vV]oid)
 cat <<EOF
 $PADCC$PBLD                ${PGRN}________

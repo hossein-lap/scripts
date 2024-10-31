@@ -23,5 +23,6 @@ if [ -z "${lip}" ]; then
 else
 	# lip="$(echo ${lip} | awk -F '.' '{print $3"."$4}')"
 	name="$(echo ${1} | cut -c1-1)"
-	printf "${name}:${lip}"
+	printf "${lip}"
+	# printf "${name}:${lip}"
 fi

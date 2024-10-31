@@ -3,9 +3,11 @@
 names=$(ps aux \
 	| grep -v grep \
 	| grep qemu-system \
-	| grep ${HOME}/.local/virtual-machines \
-	| awk -F '=' '{print $3;}' \
-    | sed 's/\.img,.*//' \
+    | sed 's/.*-hda \(.*.img\).*/\1/' \
+    | sed 's,\.\/,,' \
+    | sed 's,\/,,' \
+    | sed 's,\.img$,,' \
+    | tr -d '\n' \
 )
 
 # printf 'v:%s,%s' ${names}
@@ -18,7 +20,7 @@ for i in ${names}; do
 	fi
 done
 
-if [ -z ${out} ]; then
+if [ -z "${out}" ]; then
 	printf ♦
 else
 	printf 'v:%s' $out

@@ -137,7 +137,6 @@ record_screen () {
 			-c:v ${VideoCodec} \
 			-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 			-pix_fmt yuv420p \
-			-loglevel quiet -stats \
 			"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 	sys)
@@ -156,7 +155,6 @@ record_screen () {
 			-vcodec ${VideoCodec} \
 			-pix_fmt yuv420p \
 			-r ${FrameRate} \
-			-loglevel quiet -stats \
 			"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 	none)
@@ -168,7 +166,6 @@ record_screen () {
 			-r ${FrameRate} \
 			-vcodec ${VideoCodec} \
 			-pix_fmt yuv420p \
-			-loglevel quiet -stats \
 			"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
 	*) notify "Record canceled" 1; exit 174;;
@@ -211,7 +208,6 @@ record_act_window () {
 				-c:v ${VideoCodec} \
 				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		sys)
@@ -226,7 +222,6 @@ record_act_window () {
 				-vcodec ${VideoCodec} \
 				-acodec ${AudioCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		none)
@@ -237,7 +232,6 @@ record_act_window () {
 				-r ${FrameRate} \
 				-vcodec ${VideoCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
 		*) notify "Record canceled" 1; exit 243;;
@@ -285,7 +279,6 @@ record_sel_window () {
 				-c:v ${VideoCodec} \
 				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		sys)
@@ -300,7 +293,6 @@ record_sel_window () {
 				-c:v ${VideoCodec} \
 				-crf 0 -preset ultrafast -c:a ${AudioCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${AudioCodec}-${VideoCodec}.${Extention}"
 		;;
 		none)
@@ -311,7 +303,6 @@ record_sel_window () {
 				-r ${FrameRate} \
 				-c:v ${VideoCodec} \
 				-pix_fmt yuv420p \
-				-loglevel quiet -stats \
 				"${Directory}/${BaseName}${Name}-${DemRes}-${VideoCodec}.${Extention}"
 		;;
 		*) notify "Record canceled" 1; exit 317;;

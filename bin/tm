@@ -17,6 +17,8 @@ if [ "${check}" = '0' ]; then
 	fi
 fi
 
+echo $LINENO
+
 if [ -z "${TMUX}" ]; then
 	tmux att -t ${session_name} 2>/dev/null
 else

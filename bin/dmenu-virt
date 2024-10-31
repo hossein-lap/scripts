@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #  ____     _ 
 # |  _ \   | |
 # | |_) |  | |
@@ -8,18 +8,116 @@
 
 set -e
 
+command -v gum >/dev/null 2>&1
+[ "${?}" -ne 0 ] && echo "Install gum, see https://github.com/charmbracelet/gum" >&2 && exit 2
+
+# varaibles {{{
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+# }}}
+# help function {{{
+help() {
+cat << EOF
+${prompt}: what problem is this script solving
+
+usage: [-h] [-i input] [-o output]
+
+   • arguemts:
+       -i --input      intput x
+       -o --output     output y
+       -s --style      launcher style
+       -e --args       extra args (to pass to the launcher)
+       -h --help       print this message
+
+   • example:
+       ${prompt} -i in -o out
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+
+# argument parsing {{{
+while [ "${#}" -gt 0 ]; do
+case ${1} in
+	-h|--help)
+		help
+		exit 0
+		;;
+	-d|--dir)
+		rootdir="${2}"
+		shift
+		;;
+	-a|--args)
+		args="${2}"
+		shift
+		;;
+	*)
+		echo "Unknown parameter passed: ${1}"
+		exit 1
+		;;
+esac
+shift
+done
+# }}}
+# checking args {{{
+[ -z "${rootdir}" ] && rootdir="${HOME}/vm"
+# }}}
+
+# notification function {{{
 notify() {
-	notify-send -a dmvirt -i qemu-system "${1}" "${2}"
+summary="${1}"
+if [ -z "${2}" ] || [ "${2}" = 1 ] || [ "${2}" = 2 ] || [ "${2}" = 3 ]; then
+	case ${2} in
+		1) mode=low ;;
+		2) mode=normal ;;
+		3) mode=critical ;;
+		*) mode=normal ;;
+	esac
+	#msgbody="${3}"
+else
+	case ${3} in
+		1) mode=low ;;
+		2) mode=normal ;;
+		3) mode=critical ;;
+		*) mode=normal ;;
+	esac
+	msgbody="${2}"
+fi
+
+if [ ${mode} = 'critical' ]; then
+	iferror="stderr"
+#		icon='error'
+else
+	iferror="stdout"
+fi
+
+if [ -n "${icon}" ]; then
+	noticon="-i ${icon}"
+fi
+
+if [ "${style}" = 'tui' ]; then
+	printf '[%s] %s\n' "${summary}" "${msgbody}" "${iferror}"
+elif [ -z "${DISPLAY}" ]; then
+	echo "${@}" >/dev/null 2>&1
+else
+	notify-send -a "${prompt}" -u ${mode} ${noticon} \
+		"${summary}" "${msgbody}" 2>/dev/null
+	printf '[%s] %s\n' "${summary}" "${msgbody}" >/dev/${iferror}
+fi
+}
+# }}}
+
+notify() {
+	notify-send -a ${prompt} -i qemu-system "${1}" "${2}"
 	printf '%s: %s\n' "${1}" "${2}" 1>&2
 }
 
-path="${HOME}/.local/virtual-machines/qemu"
+path="${rootdir}"
 
 patched=$(dmenu -v | grep -c 'hos-patched')
 if [ ${patched} -eq 1 ]; then
-	patches="-c -bw 2 -g 1 -l 11 -r"
+	patches="-c -bw 2 -g 2 -l 3 -r"
 fi
-prompt="virt"
 runner="dmenu \
 		-i \
 		${patches} \
@@ -27,23 +125,57 @@ runner="dmenu \
 		${@} \
 		"
 
-list=$(find ${path} -maxdepth 1 -type d \
-	| grep -v "${path}$\|manage.sh" \
+list=$(find ${path} -mindepth 1 -maxdepth 1 -type d \
 	| awk -F '/' '{print $NF;}' \
-	| grep -v '\.' \
-	| grep -v '_')
+	| grep -v '_' \
+	| grep -v '\.iso$' \
+)
 
-vm_name=$(echo ${list} | tr ' ' '\n' | ${runner})
+ps_names=$(ps aux \
+	| grep -v grep \
+	| grep qemu-system \
+	| awk '{print $NF;}' \
+    | sed 's/\.img.*//' \
+    | sed 's,^\./,,' \
+)
+
+for i in $(echo ${list} | tr ' ' '\n'); do
+    for j in ${ps_names}; do
+        if [ "${i}" = "${j}" ]; then
+            list=$(echo ${list} | sed "s/${i}/${i}:[on]/")
+        fi
+    done
+done
+
+vm_name=$(echo ${list} | tr ' ' '\n' | sort | ${runner})
+
+echo ${vm_name}
+[ -z "${vm_name}" ] && $0
+
+path=$(echo ${path} | awk -F ':' '{print $1;}')
+vm_status=${vm_name}
+vm_name=$(echo ${vm_name}  | awk -F ':' '{print $1;}')
 
 options=$(find ${path}/${vm_name} -maxdepth 1 -type f -perm /u+x \
-	| awk -F '/' '{print $NF;}')
+	| awk -F '/' '{print $NF;}' \
+	| grep -v '\.iso$' \
+)
+
+echo ${options}
+[ -z "${options}" ] && $0
 
 if [ -z "${options}" ]; then
 	notify "${vm_name}" "No executable found. Nothing to do here"
 	exit 1
 fi
 
-run=$(echo ${options} | tr ' ' '\n' | ${runner} -p ${vm_name}-${prompt})
+if [ ${patched} -eq 1 ]; then
+	patches="-l 2"
+fi
+run=$(echo ${options} | tr ' ' '\n' | ${runner} ${patches} -p vm:${vm_status})
+
+echo ${run}
+[ -z "${run}" ] && $0
 
 # echo "${path}/${vm_name}/${run}"
 

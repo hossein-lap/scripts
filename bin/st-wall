@@ -1,28 +1,41 @@
 #!/bin/sh
 
-
+input="${HOME}/pictures/wallpaper/red-dark-hands.png"
 name="${HOME}/.local/share/dwm/background"
+command -v magick && cmd="magick convert" || cmd="convert"
 
 # convert ${name} -resize 50% ${name}.jpg
 
-# if [ -f "${1}" ]; then
-# 	name="${1}"
+    ${cmd} \
+        -resize 1920x1080^ \
+        ${input} \
+        -fuzz 5% -fill '#073642' -opaque '#000000' \
+        -background black \
+        -gravity center \
+        -extent 1920x1080^ \
+        ${name}.jpg
+            # convert ${name} ${name}.jpg
 
-	magick convert \
-		-resize 1920x1080^ \
-		${name} \
-		-background black \
-		-gravity center \
-		-extent 1920x1080^ \
-		${name}.jpg
-	# convert ${name} ${name}.jpg
+    jpg2ff < ${name}.jpg \
+        | ff-border e 50 \
+        | ff-bright rgba 0 0.5 1 \
+        | ff-blur 50 05 > ${name}.st
 
-	jpg2ff < ${name}.jpg \
-		| ff-border e 50 \
-		| ff-bright rgba 0 0.3 1 \
-		| ff-blur 50 05 > ${name}.ff
+    ${cmd} \
+        -resize 1920x1080^ \
+        ${name}.png \
+        -background black \
+        -gravity center \
+        -extent 1920x1080^ \
+        ${name}.jpg
+            # convert ${name} ${name}.jpg
 
-# fi
+    jpg2ff < ${name}.jpg \
+        | ff-border e 50 \
+        | ff-bright rgba 0 0.5 1 \
+        | ff-blur 50 05 > ${name}.ff
+
+# imagemagick-color -i "${1}" -o "${presist_wall}" -r '#000000' -f '#81908f' -p 5
 
 if [ "${#}" -eq 0 ]; then
 	for i in $(pidof st tabbed); do kill -s USR1 "${i}" || echo "${i}"; done

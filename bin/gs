@@ -6,17 +6,26 @@ runner="fzf"
 args="-i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessions --height 10% --reverse"
 
 set_user() {
-    options="hos pj"
+    options="pers-hos pers-pj work-hos work-pj"
     choice=$(echo ${options} | tr ' ' '\n' | ${runner} ${args} --header 'git user/email config')
 
     case ${choice} in
-        hos)
-            git config user.name  'Hossein Esmail'
-            git config user.email 'hosteam01@gmail.com'
+        pers-pj)
+            username='primejade'
+            email='primejade@proton.me'
+            git config core.sshCommand 'ssh -i ~/.ssh/id_ed25520'
             ;;
-        pj)
-            git config user.name  'primejade'
-            git config user.email 'primejade@proton.me'
+        pers-hos)
+            username='Hossein Esmail'
+            email='hosteam01@gmail.com'
+            ;;
+        work-hos)
+            username='Hossein Esmailzadeh'
+            email='h.esmailzadeh@sinacomsys.com'
+            ;;
+        work-pj)
+            username='primejade'
+            email='hosteam01@gmail.com'
             ;;
         *)
             echo Nothing has changed
@@ -25,6 +34,10 @@ set_user() {
     esac
     
     if [ $? -eq 0 ]; then
+        git config user.name "${username}"
+        git config user.email "${email}"
+        echo "Username: ${username}"
+        echo "Email: ${email}"
         printf 'gs: git user set: %s\n' ${choice}
     else
         exit 1

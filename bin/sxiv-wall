@@ -7,7 +7,7 @@
 #             
 
 defpicdir="${HOME}/pictures"
-presist_wall="${HOME}/.local/share/dwm/background"
+presist_wall="${HOME}/.local/share/dwm/background.png"
 #script_name=$(echo ${0} | awk -F '/' '{print $NF;}')
 script_name="Wallpaper"
 runner="xwallpaper --zoom"
@@ -41,19 +41,20 @@ notif_send() {
 wall_set() {
 	if [ -r "${1}" ]; then
 		ww="$(echo "${1}" | awk -F '/' '{print $NF;}')"
-		${runner} "${1}"
-		if [ -z "${2}" ]; then
-			cp -fv "${1}" ${presist_wall}
-		fi
+        if [ -z "${2}" ]; then
+            convert "${1}" ${presist_wall}
+            # imagemagick-color -i "${1}" -o "${presist_wall}" -r '#000000' -f '#001e26' -p 5
+        fi
+		${runner} "${presist_wall}"
 		wal -c
 		wal -q -n -s -i "${presist_wall}"
 		xrdb ~/.Xresources
-		cat ~/.config/dunst/dunstrc.tmp ~/.cache/wal/dunstrc > ~/.config/dunst/dunstrc.dwm
+		# cat ~/.config/dunst/dunstrc.tmp ~/.cache/wal/dunstrc > ~/.config/dunst/dunstrc.dwm
 		kill `pidof dunst` || echo 1
 		st-wall
 		dunst & disown
 		notif_send "Wallpaper changed" "${ww}"
-		for i in $(pidof st tabbed dwm); do kill -s USR1 "${i}" || echo "${i}"; done
+		for i in $(pidof st tabbed); do kill -s USR1 "${i}" || echo "${i}"; done
 		exit 0
 	else
 		exit 1
@@ -73,7 +74,7 @@ shuf_wall() {
 }
 
 dir_wall() {
-	thewall=$(${viewer} "${1}")
+	thewall=$(${viewer} "${@}")
 	if [ -f "${thewall}" ]; then
 		wall_set "${thewall}"
 		ww="$(echo "${thewall}" | awk -F '/' '{print $NF;}')"
@@ -91,7 +92,7 @@ dir_wall_intractive() {
 	if [ -f "${thewall}" ]; then
 		wall_set "${thewall}"
 		if [ $? -eq 0 ]; then
-			cp -f "${thewall}" ${presist_wall}
+			convert "${thewall}" ${presist_wall}
 			ww="$(echo "${thewall}" | awk -F '/' '{print $NF;}')"
 			notif_send "Wallpaper changed" "${ww}"
 			exit 0
@@ -125,7 +126,7 @@ elif [ "${1}" = '-s' ]; then
 elif [ "${1}" = '-r' ]; then
 	${runner} ${presist_wall}
 elif [ -d "${1}" ]; then
-	dir_wall ${1}
+	dir_wall ${@}
 elif [ -f "${1}" ]; then
 	wall_set "${1}"
 else
