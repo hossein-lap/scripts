@@ -143,8 +143,8 @@ fi
 [ -z "${font}" ] && font="Monospace"
 [ -z "${size}" ] && size="22"
 [ -z "${border}" ] && border="25"
-[ -z "${grad_width}" ] && grad_width="200"
-[ -z "${grad_height}" ] && grad_height="320"
+[ -z "${grad_width}" ] && grad_width="100"
+[ -z "${grad_height}" ] && grad_height="160"
 [ -z "${border}" ] && border="25"
 [ -z "${lastborder}" ] && lastborder=$(echo "${border} / 2" | bc)
 [ -z "${color5}" ] && grad_first='#770000' || grad_first="${color5}"

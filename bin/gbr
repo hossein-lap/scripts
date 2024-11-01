@@ -1,0 +1,87 @@
+#!/bin/sh
+set -e
+
+# help function
+prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
+help() {
+cat << EOF
+${prompt}: setup git worktree and bare repo
+
+usage: [-h] [-u url] [-d directory] [-a extra_args]
+
+   • arguemts:
+       -u --url      repo url (ssh)
+       -d --dir      directory name
+       -a --args     extra args (to pass to the git)
+       -h --help     print this message
+
+   • example:
+       ${prompt} -u gitlab.com:hos-workflow/scripts -d test.git -a '--depth 1'
+
+   • running without any arguments will show this message
+EOF
+}
+
+# argument parsing
+while [ "${#}" -gt 0 ]; do
+    case ${1} in
+        -u|--url)
+            input="${2}"
+            shift
+            ;;
+        -d|--directory)
+            output="${2}"
+            shift
+            ;;
+        -h|--help)
+            help
+            exit 0
+            ;;
+        -a|--args)
+            args="${args} ${2}"
+            shift
+            ;;
+        *)
+            echo "Unknown parameter passed: ${1}"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# checking args
+if [ -z "${input}" ]; then
+    printf '%s\n\n' "No url is specified" 1>&2
+    help
+    exit 1
+fi
+
+if [ -z "${output}" ]; then
+    printf \
+        "No directory name is specified, " \
+        "Using default directory name..\n" \
+        1>&2
+    output="$(echo ${input} | awk -F '/' '{print $NF;}')"
+fi
+
+# start
+git clone ${args} --bare git@${input} ${output}
+cd ${output}
+mkdir .bare
+mv * .bare
+echo "gitdir: ./.bare" > .git
+
+check_branch=$(git --no-pager branch | grep -v '*\|+' | awk '{print $1;}' | wc -l)
+
+if [ "${check_branch}" -gt 0 ]; then
+    for i in $(git --no-pager branch | sed 's/^[*+]/ /' | awk '{print $1;}'); do
+        git worktree add "${i}" "${i}"
+    done
+else
+	i=$(git --no-pager branch | awk '{print $NF;}')
+    git worktree add "${i}" "${i}"
+fi
+
+# git config remote.origin.url "git@${input}"
+git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+git fetch

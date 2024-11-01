@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+list="add commit remove branch stash diff log"
+
+# runner="smenu"
+# args="-m git -n 5 -c"
+
+fzf="fzf"
+args="-m --reverse --height 10% --no-unicode"
+
+tmp=$(echo ${list} | tr ' ' '\n' | ${fzf} ${args})
+
+echo ${tmp}
+
+# main {{{
+case "${tmp}" in
+    branch)
+        name=$(git branch -a | awk '{print $1;}' | grep -v '*' | ${fzf} ${args}) # | awk -F '{print $1;}' | grep -v '*' | awk -F '/' '{print $NF;}')
+        echo ${name}; exit 12
+        git checkout ${name}
+        ;;
+    *)
+        help
+        ;;
+esac
+# }}}
+
