@@ -55,7 +55,7 @@ All automated and wrappers that I am using daily.
 * `imagemagick-string`: Image with text
 * `imagemagick-title`: Append title to the frame
 * `imagemagick-trim`: Trim the borders
-* `imagemagick-unixporn`: 
+* `imagemagick-unixporn`: make shots like the ones on `r/unixporn`
 
 .Statusline scripts
 * `slsbattery`: battry status
