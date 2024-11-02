@@ -1,0 +1,114 @@
+= Hos scripts
+
+All automated and wrappers that I am using daily.
+
+* `adoc`: ruby script to convert asciidoc documents to PDF files using
+  asciidoctor's ruby API.
+
+.yad scripts
+* `color-picker`: yad / bash script tp select color from the GUI.
+* `yadpass`: askpass using `yad`
+* `zenpass`: askpass using `zenity`
+
+.dmenu scripts
+* `dmenu-bright`: display brighness manager
+* `dmenu-exec`: command runner
+* `dmenu-exit`: session manager
+* `dmenu-flatpak`: flatpak runner
+* `dmenu-fresh`: (WIP)
+* `dmenu-kill`: task manager
+* `dmenu-lp`: lp and lpr wrapper (to print and manage printers)
+* `dmenu-emoji`: emoji picker
+* `dmenu-fontawesome`: font-icon picker
+* `dmenu-nerdfont`: font-icon picker
+* `dmenu-unicode`: unicode chars picker
+* `dmenu-notes`: take and manage persoal notes
+* `dmenu-pass`: (WIP)
+* `dmenupass`: GNU pass wrapper
+* `dmenu-pdf`: (WIP)
+* `dmenu-play`: mpd controler
+* `dmenu-record`: ffmpeg screen recorder (WIP)
+* `dmenurecord`: ffmpeg screen recorder (WIP)
+* `dmenu-shot`: screenshooter
+* `dmenu-srun`: script in hardcoded path to run
+* `dmenu-stexec`: run commands in st (WIP)
+* `dmenu-tmux-exec`: (WIP)
+* `dmenu-usb`: use daemon
+* `dmenu-virt`: manage virtual-machines (WIP)
+* `dmenu-wttr`: weather
+* `passmenu`: askpass menu
+
+.ImageMagick scripts
+* `imagemagick-alpha`: removes specific color (makes it transparent)
+* `imagemagick-append`: append two or more images (vertivally or horizontally)
+* `imagemagick-blur`: Add blur effect
+* `imagemagick-circle`: Crops image in curcles
+* `imagemagick-color`: Convert specific color of an image to another
+* `imagemagick-crop`: 
+* `imagemagick-gradiant`: append custom color (gradiant) to borders
+* `imagemagick-merge`: merge two images on top of eachother
+* `imagemagick-negate`: Revert image's color
+* `imagemagick-round`: Make borders round (crop the extra)
+* `imagemagick-shadow`: Shadow borders
+* `imagemagick-shot`: Take screenshot
+* `imagemagick-src`: Framed image from source code
+* `imagemagick-string`: Image with text
+* `imagemagick-title`: Append title to the frame
+* `imagemagick-trim`: Trim the borders
+* `imagemagick-unixporn`: 
+
+.Statusline scripts
+* `slsbattery`: battry status
+* `slsdate`: date
+* `slsfree`: CPU, Memory and Swap usage
+* `slsfrees`: CPU, Memory and Swap usage (I guess)
+* `slsip`: Device IP
+* `slsmpd`: mpd status
+* `slsnetwork`: Network ping
+* `slsping`: Network ping (WIP)
+* `slsrecord`: `dmenu-record`'s status
+* `slsvm`: `QEMU` virtual machines status
+* `slswttr`: Weather from `wttr.in` using `curl` (WIP)
+
+.wallpaper related scripts
+* `st-wall`: convert photos to `farbfeld` format to be used in `st`'s background
+* `sxiv-wall`: list photos in `nsxiv` to be set as desktop wallpaper
+
+.Tmux scripts
+* `tl`: Session list using `fzf`
+* `tm`: Create tmux session in the `$PWD` with right session name based on it
+* `tmux-cheatsheet`: I don't remember this one
+* `tmux-sessionizer`: list of directories in `fzf` to create sessions from it
+
+=== Eye Candy
+
+* `colortest-slim`
+* `crunch`
+* `datestartup`
+* `stsysfetch`
+* `startsay`
+* `sysfetch`
+* `unix`
+* `versions`
+
+.Other wrappers
+* `dlw`: Download using `yt-dlp`, `aria2` or `wget`
+* `evil`: Emacs with custom `--init-dir`
+* `gs`: Different git configs (due to my per-project-config workflow)
+* `lfub`: `lf` but with `ueberzug` support
+* `mcam`: `mpv` as webcam
+* `randr.sh`: setup multimonitor
+* `rawfetch`: `curl` the raw content
+* `nmdns`: change DNS
+* `noisereduce`:  (WIP)
+* `notebuild`:  (WIP)
+* `notetake`:  (WIP)
+* `pic2pdf.sh`: (WIP)
+* `readpass`: askpass program using bash's `read` command
+* `rotdir`: (WIP)
+* `stab`: `st` in `tabbed` (tab support)
+* `statusbars`:  (WIP)
+* `wttr`: Weather
+* `xkblayout`: Current keyboard layouy (Lang)
+* `xrate`: Xkeyboard delay and press-rate
+
