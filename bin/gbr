@@ -1,87 +1,83 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use File::Basename;
+use Cwd;
+
+# variables
+my $input = '';
+my $output = '';
+my $args = '';
+my $sshkey = '';
+my $help = 0;
+my $prompt = basename($0);
 
 # help function
-prompt=$(echo ${0} | awk -F '/' '{print $NF;}')
-help() {
-cat << EOF
-${prompt}: setup git worktree and bare repo
+sub print_help {
+    print <<"EOF";
+$prompt: setup git worktree and bare repo
 
 usage: [-h] [-u url] [-d directory] [-a extra_args]
 
-   • arguemts:
+   • arguments:
        -u --url      repo url (ssh)
        -d --dir      directory name
        -a --args     extra args (to pass to the git)
        -h --help     print this message
 
    • example:
-       ${prompt} -u gitlab.com:hos-workflow/scripts -d test.git -a '--depth 1'
+       $prompt -u gitlab.com:hos-workflow/scripts -d test.git -a '--depth 1'
 
    • running without any arguments will show this message
 EOF
 }
 
 # argument parsing
-while [ "${#}" -gt 0 ]; do
-    case ${1} in
-        -u|--url)
-            input="${2}"
-            shift
-            ;;
-        -d|--directory)
-            output="${2}"
-            shift
-            ;;
-        -h|--help)
-            help
-            exit 0
-            ;;
-        -a|--args)
-            args="${args} ${2}"
-            shift
-            ;;
-        *)
-            echo "Unknown parameter passed: ${1}"
-            exit 1
-            ;;
-    esac
-    shift
-done
+GetOptions(
+    'u|url=s'      => \$input,
+    'd|dir=s'      => \$output,
+    'a|args=s'     => \$args,
+    'k|sshkey=s'   => \$sshkey,
+    'h|help'       => \$help,
+) or die "Error in command line arguments. Use -h for help.\n";
 
 # checking args
-if [ -z "${input}" ]; then
-    printf '%s\n\n' "No url is specified" 1>&2
-    help
-    exit 1
-fi
+if ($help || !$input) {
+    print_help();
+    exit($help ? 0 : 1);
+}
 
-if [ -z "${output}" ]; then
-    printf \
-        "No directory name is specified, " \
-        "Using default directory name..\n" \
-        1>&2
-    output="$(echo ${input} | awk -F '/' '{print $NF;}')"
-fi
+if (!$output) {
+    warn "No directory name is specified, Using default directory name, ";
+    ($output) = $input =~ m{([^/]+)$};
+}
 
 # start
-git clone ${args} --bare git@${input} ${output}
-cd ${output}
-mkdir .bare
-mv * .bare
-echo "gitdir: ./.bare" > .git
+my $ssh_prefix = $sshkey ? "GIT_SSH_COMMAND='ssh -i $sshkey'" : '';
+my $clone_cmd = "$ssh_prefix git clone $args --bare git\@$input $output";
+system($clone_cmd) == 0 or die "Failed to clone repository\n";
 
-check_branch=$(git --no-pager branch | grep -v '*\|+' | awk '{print $1;}' | wc -l)
+chdir $output or die "Cannot change directory to $output: $!\n";
+mkdir ".bare" or die "Cannot create .bare directory: $!\n";
+system("mv * .bare") == 0 or die "Failed to move contents to .bare\n";
+open my $gitfile, '>', '.git' or die "Cannot open .git file: $!\n";
+print $gitfile "gitdir: ./.bare\n";
+close $gitfile;
 
-if [ "${check_branch}" -gt 0 ]; then
-    for i in $(git --no-pager branch | sed 's/^[*+]/ /' | awk '{print $1;}'); do
-        git worktree add "${i}" "${i}"
-    done
-else
-	i=$(git --no-pager branch | awk '{print $NF;}')
-    git worktree add "${i}" "${i}"
-fi
+my @branches = `git --no-pager branch`;
+chomp @branches;
+# @branches = grep { $_ !~ /^[*+]/ } @branches;
+@branches = map { s/^\**\s*//r } @branches;
 
-# git config remote.origin.url "git@${input}"
-git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
-git fetch
+if (@branches) {
+    foreach my $branch (@branches) {
+        # print("\$ git worktree add '$branch' '$branch'\n");
+        system("git worktree add '$branch' '$branch'") == 0 or warn "Failed to add worktree for $branch\n";
+    }
+}
+
+# system("git config remote.origin.url 'git@${input}'") == 0 or warn "Failed to set origin url\n";
+system("git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'") == 0 or warn "Failed to set fetch config\n";
+system("git fetch") == 0 or warn "Failed to fetch from remote\n";
