@@ -41,7 +41,7 @@ sub update_git_config {
     print "Email: $email\n";
 
     if ($choice eq 'work-pj' || $choice eq 'pers-pj') {
-        system('git', 'config', 'core.sshCommand', 'ssh -i ~/.ssh/id_ed25520');
+        system('git', 'config', 'core.sshCommand', 'ssh -i ~/.ssh/id_ed25519');
     }
 
     system('git', 'config', 'user.name', $username);
