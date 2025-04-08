@@ -1,41 +1,86 @@
-#!/usr/bin/env bash
+#!/usr/bin/env perl
 
-set_title() {
-    prefix="$(whoami)@$(cat /etc/hostname)"
-    if [ -z "${1}" ]; then
-        path="$(pwd | sed "s,${HOME},~,")"
-        title="[${prefix}] tmux at ${path}"
-    else
-        title="[${prefix}] tmux at ${1}"
-    fi
+use strict;
+use warnings;
+use IO::Handle;
+use POSIX qw(strftime);
+use Term::ANSIColor;
 
-    printf "\e]1;${title}\a"
-    printf "\e]2;${title}\a"
-    printf "\e]3;${title}\a"
+my $colorful = 1; # set 0 to disable colored logs
+
+sub log_print {
+    my ($level, $message) = @_;
+    my ($package, $filename, $line) = caller();
+    $filename = substr($filename, rindex($filename, '/') + 1);
+
+    my $current_date = strftime("%Y-%m-%d %H:%M:%S", localtime);
+    my $log_name = "info";
+    my $log_color = 'white';
+
+    if ($level eq 2) {
+        $log_name = "debug";
+        $log_color = 'blue';
+    } elsif ($level eq 3) {
+        $log_name = "warn";
+        $log_color = 'yellow';
+    } elsif ($level eq 4) {
+        $log_name = "error";
+        $log_color = 'red';
+    }
+
+    if ($level) {
+        if ($colorful) {
+            if ($level eq 4) {
+                die("$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n");
+            } else {
+                print "$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n";
+            }
+        } else {
+            if ($level eq 4) {
+                die("$current_date $filename:$line\t$message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line\t$message\n");
+            } else {
+                print "$current_date $filename:$line\t$message\n";
+            }
+        }
+    }
 }
 
-_title="tmux-sessions"
-set_title "${_title}"
+sub set_title {
+    my $title = shift;
+    print "\033]0;$title\007";
+    STDOUT->flush();  # immediate output
+}
 
-FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS} --header ${_title} --unicode"
+my $title = "tmux-sessions";
+set_title($title);
 
-# fzf
-list=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}')
+my @tmux_sessions = `tmux list-sessions 2>/dev/null`;
+chomp @tmux_sessions;
 
-if [ -z "${list}" ]; then
-	echo "tmux: No active session(s)" > /dev/stderr
-	exit 1
-else
-	session_name=$(echo ${list} | tr ' ' '\n' | fzf)
-    if [ -z "${session_name}" ]; then
-        exit 2
-    else
-        set_title "${session_name}"
-        if [ -z "${TMUX}" ]; then
-            tmux att -t ${session_name} 2> /dev/null
-        else
-            tmux switchc -t ${session_name} 2> /dev/null
-        fi
-    fi
-fi
+if (!@tmux_sessions) {
+    log_print(4, "tmux: No active session(s)");
+    exit 1;
+}
+
+my $session_list = join("\n", map { (split /:/)[0] } @tmux_sessions);
+my $session_name = `echo "$session_list" | fzf`;
+chomp $session_name;
+
+if (!$session_name) {
+    log_print(3, "No session selected");
+    exit 2;
+}
+
+set_title($session_name);
+if (!exists $ENV{"TMUX"}) {
+    system("tmux attach -t '$session_name' 2>/dev/null");
+    log_print(0, "Attached to tmux session: $session_name");
+} else {
+    system("tmux switchc -t '$session_name' 2>/dev/null");
+    log_print(0, "Switched to tmux session: $session_name");
+}
 
