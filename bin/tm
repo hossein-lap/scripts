@@ -1,51 +1,127 @@
-#!/usr/bin/env bash
+#!/usr/bin/env perl
 
-set_title() {
-    prefix="$(whoami)@$(cat /etc/hostname)"
-    if [ -z "${1}" ]; then
-        path="$(pwd | sed "s,${HOME},~,")"
-        title="[${prefix}] tmux at ${path}"
-    else
-        title="[${prefix}] tmux at ${1}"
-    fi
+use strict;
+use warnings;
+use IO::Handle;
+use POSIX qw(strftime);
+use Term::ANSIColor;
 
-    printf "\e]1;${title}\a"
-    printf "\e]2;${title}\a"
-    printf "\e]3;${title}\a"
+my $colorful = 1; # set 0 to disable colored logs
+
+sub log_print {
+    my ($level, $message) = @_;
+    my ($package, $filename, $line) = caller();
+    $filename = substr($filename, rindex($filename, '/') + 1);
+
+    my $current_date = strftime("%Y-%m-%d %H:%M:%S", localtime);
+    my $log_name = "info";
+    my $log_color = 'white';
+
+    if ($level eq 2) {
+        $log_name = "debug";
+        $log_color = 'blue';
+    } elsif ($level eq 3) {
+        $log_name = "warn";
+        $log_color = 'yellow';
+    } elsif ($level eq 4) {
+        $log_name = "error";
+        $log_color = 'red';
+    }
+
+    if ($level) {
+        if ($colorful) {
+            if ($level eq 4) {
+                die("$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n");
+            } else {
+                print "$current_date $filename:$line\t" . color('bold ' . $log_color) . "$log_name" . color('reset') . "\t$message\n";
+            }
+        } else {
+            if ($level eq 4) {
+                die("$current_date $filename:$line\t$message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line\t$message\n");
+            } else {
+                print "$current_date $filename:$line\t$message\n";
+            }
+        }
+    }
 }
 
-if [ -z "${1}" ]; then
-	tmp="$(basename $(dirname $(pwd | tr ' ' +)))/$(basename $(pwd | tr ' ' +))"
-	session_name=$(echo ${tmp} | tr . _)
-else
-	session_name="${1}"
-fi
+sub set_title {
+    my $arg = shift;
+    my $prefix = getpwuid($<) . '@' . `cat /etc/hostname`;
+    chomp $prefix;
 
-set_title "${session_name}"
+    my $path = defined $arg ? $arg : `pwd`;
+    chomp $path;
+    $path =~ s/\Q$ENV{HOME}\E/~/ if !defined $arg;
 
-check=$(tmux ls 2>/dev/null | grep -c "\<${session_name}\>")
+    my $title = "[$prefix] tmux at $path";
 
-if [ "${check}" = '0' ]; then
-	if [ -n "${TMUX}" ] ; then
-		tmux new-session -s "${session_name}" -c "${PWD}" -d # 2>/dev/null
-        tmux switchc -t ${session_name} # 2>/dev/null
-        exit $?
-	else
-		tmux new-session -s "${session_name}" # 2>/dev/null
-        exit $?
-	fi
-else
-    if [ -z "${TMUX}" ]; then
-        tmux att -t ${session_name} # 2>/dev/null
-        exit $?
-    else
-        tmux switchc -t ${session_name} # 2>/dev/null
-        exit $?
-    fi
-fi
+    # print "\e]10;${title}\a";
+    # print "\e]20;${title}\a";
+    # print "\e]30;${title}\a";
 
-# if [ -z "${TMUX}" ]; then
-#     tmux att -t ${session_name} # 2>/dev/null
-# else
-# fi
+    # print "\e]31;${title}\a";
+    # print "\e]32;${title}\a";
+    # print "\e]33;${title}\a";
+
+    # print "\031]0;$title\007";
+    # print "\032]0;$title\007";
+
+    print "\033]0;$title\007";
+    STDOUT->flush();  # immediate output
+}
+
+# session name
+my $session_name;
+if (!defined $ARGV[0]) {
+    my $cwd = `pwd`;
+    chomp $cwd;
+    my @parts = split('/', $cwd);
+    my $basename = pop @parts;
+    my $dirname = pop @parts // '';
+    $session_name = "$dirname/$basename";
+    $session_name =~ tr/./_/;
+} else {
+    $session_name = $ARGV[0];
+}
+
+set_title($session_name);
+
+# check if session exists
+my $check = 0;
+my @tmux_sessions = `tmux ls 2>/dev/null`;
+chomp @tmux_sessions;
+foreach my $session (@tmux_sessions) {
+    if ($session =~ /^$session_name:/) {
+        $check = 1;
+        last;
+    }
+}
+
+if ($check == 0) {
+    if (exists $ENV{"TMUX"}) {
+        system("tmux new-session -s '$session_name' -c '$ENV{PWD}' -d");
+        system("tmux switchc -t '$session_name'");
+        log_print(0, "Created and switched to new tmux session: $session_name");
+        exit;
+    } else {
+        system("tmux new-session -s '$session_name'");
+        log_print(0, "Created new tmux session: $session_name");
+        exit;
+    }
+} else {
+    if (!exists $ENV{"TMUX"}) {
+        system("tmux attach -t '$session_name'");
+        log_print(0, "Attached to existing tmux session: $session_name");
+        exit;
+    } else {
+        system("tmux switchc -t '$session_name'");
+        log_print(0, "Switched to existing tmux session: $session_name");
+        exit;
+    }
+}
 
