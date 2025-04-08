@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set_title() {
+    prefix="$(whoami)@$(cat /etc/hostname)"
+    if [ -z "${1}" ]; then
+        path="$(pwd | sed "s,${HOME},~,")"
+        title="[${prefix}] tmux at ${path}"
+    else
+        title="[${prefix}] tmux at ${1}"
+    fi
+
+    printf "\e]1;${title}\a"
+    printf "\e]2;${title}\a"
+    printf "\e]3;${title}\a"
+}
+
+_title="tmuxinator-list"
+set_title "${_title}"
+
+FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS} --header ${_title} --unicode"
+
+list=$(tmuxinator list | grep -v 'tmuxinator projects:' | tr ' ' '\n' | grep -v '^$' | fzf)
+tmuxinator start ${list}
+

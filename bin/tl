@@ -1,22 +1,41 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-fzf="fzf -i --no-unicode --prompt=: --info=inline --header-first --header tmux-sessions --height 50% --reverse"
-# fzf=fzf
+set_title() {
+    prefix="$(whoami)@$(cat /etc/hostname)"
+    if [ -z "${1}" ]; then
+        path="$(pwd | sed "s,${HOME},~,")"
+        title="[${prefix}] tmux at ${path}"
+    else
+        title="[${prefix}] tmux at ${1}"
+    fi
+
+    printf "\e]1;${title}\a"
+    printf "\e]2;${title}\a"
+    printf "\e]3;${title}\a"
+}
+
+_title="tmux-sessions"
+set_title "${_title}"
+
+FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS} --header ${_title} --unicode"
+
+# fzf
 list=$(tmux list-sessions 2>/dev/null | awk -F ':' '{print $1;}')
 
 if [ -z "${list}" ]; then
 	echo "tmux: No active session(s)" > /dev/stderr
 	exit 1
 else
-	session_name=$(echo ${list} | tr ' ' '\n' | ${fzf})
+	session_name=$(echo ${list} | tr ' ' '\n' | fzf)
+    if [ -z "${session_name}" ]; then
+        exit 2
+    else
+        set_title "${session_name}"
+        if [ -z "${TMUX}" ]; then
+            tmux att -t ${session_name} 2> /dev/null
+        else
+            tmux switchc -t ${session_name} 2> /dev/null
+        fi
+    fi
 fi
 
-if [ -z "${session_name}" ]; then
-	exit 2
-fi
-
-if [ -z "${TMUX}" ]; then
-	tmux att -t ${session_name} 2> /dev/null
-else
-	tmux switchc -t ${session_name} 2> /dev/null
-fi

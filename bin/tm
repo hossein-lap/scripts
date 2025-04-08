@@ -1,26 +1,51 @@
 #!/usr/bin/env bash
 
+set_title() {
+    prefix="$(whoami)@$(cat /etc/hostname)"
+    if [ -z "${1}" ]; then
+        path="$(pwd | sed "s,${HOME},~,")"
+        title="[${prefix}] tmux at ${path}"
+    else
+        title="[${prefix}] tmux at ${1}"
+    fi
+
+    printf "\e]1;${title}\a"
+    printf "\e]2;${title}\a"
+    printf "\e]3;${title}\a"
+}
+
 if [ -z "${1}" ]; then
-	tmp="$(basename $(dirname $(pwd)))/$(basename $(pwd))"
+	tmp="$(basename $(dirname $(pwd | tr ' ' +)))/$(basename $(pwd | tr ' ' +))"
 	session_name=$(echo ${tmp} | tr . _)
 else
 	session_name="${1}"
 fi
 
-check=$(tmux ls 2>/dev/null | grep -c "${session_name}")
+set_title "${session_name}"
+
+check=$(tmux ls 2>/dev/null | grep -c "\<${session_name}\>")
 
 if [ "${check}" = '0' ]; then
 	if [ -n "${TMUX}" ] ; then
-		tmux new-session -s "${session_name}" -c "${PWD}" -d 2>/dev/null
+		tmux new-session -s "${session_name}" -c "${PWD}" -d # 2>/dev/null
+        tmux switchc -t ${session_name} # 2>/dev/null
+        exit $?
 	else
-		tmux new-session -s "${session_name}" 2>/dev/null
+		tmux new-session -s "${session_name}" # 2>/dev/null
+        exit $?
 	fi
-fi
-
-echo $LINENO
-
-if [ -z "${TMUX}" ]; then
-	tmux att -t ${session_name} 2>/dev/null
 else
-	tmux switchc -t ${session_name} 2>/dev/null
+    if [ -z "${TMUX}" ]; then
+        tmux att -t ${session_name} # 2>/dev/null
+        exit $?
+    else
+        tmux switchc -t ${session_name} # 2>/dev/null
+        exit $?
+    fi
 fi
+
+# if [ -z "${TMUX}" ]; then
+#     tmux att -t ${session_name} # 2>/dev/null
+# else
+# fi
+
