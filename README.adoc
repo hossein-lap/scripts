@@ -1,5 +1,13 @@
 = Hos scripts
 
+[NOTE]
+====
+This README is kinda deprecated. Way more changes has been made to the existing
+scripts and many more new scripts were added.
+
+TODO: Add changelog and description.
+====
+
 All automated and wrappers that I am using daily.
 
 * `adoc`: ruby script to convert asciidoc documents to PDF files using

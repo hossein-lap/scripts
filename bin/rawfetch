@@ -10,5 +10,5 @@ set -e
 
 for i in "$@"
 do
-	curl "$i" > "$(echo "$i" | awk -F '/' '{print $NF;}')"
+	curl --silent "$i" > "$(echo "$i" | awk -F '/' '{print $NF;}')"
 done

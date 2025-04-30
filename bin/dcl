@@ -1,19 +1,22 @@
 #!/usr/bin/env perl
 
-use strict;
 use warnings;
+use strict;
 use IO::Handle;
 use POSIX qw(strftime);
 use Term::ANSIColor;
 
 my $colorful = 1; # set 0 to disable colored logs
 
+# helper functions {{{
+
+# logger {{{
 sub log_print {
     my ($level, $message) = @_;
     my ($package, $filename, $line) = caller();
     $filename = substr($filename, rindex($filename, '/') + 1);
 
-    my $current_date = strftime("%Y-%m-%d %H:%M:%S", localtime);
+    my $current_date = strftime("%Y-%m-%d %H-%M-%S", localtime);
     my $log_name = "info";
     my $log_color = 'white';
 
@@ -48,39 +51,28 @@ sub log_print {
         }
     }
 }
+# }}}
 
+# term title {{{
 sub set_title {
     my $title = shift;
     print "\033]0;$title\007";
     STDOUT->flush();  # immediate output
 }
+# }}}
 
+# }}}
+
+# pre-works {{{
+
+# set terminal title {{{
 my $title = "tmux-sessions";
 set_title($title);
+# }}}
 
-my @tmux_sessions = `tmux list-sessions 2>/dev/null`;
-chomp @tmux_sessions;
+# }}}
 
-if (!@tmux_sessions) {
-    log_print(4, "tmux: No active session(s)");
-    exit 1;
-}
+# main works {{{
 
-my $session_list = join("\n", map { (split /:/)[0] } @tmux_sessions);
-my $session_name = `echo "$session_list" | fzf`;
-chomp $session_name;
-
-if (!$session_name) {
-    log_print(3, "No session selected");
-    exit 2;
-}
-
-set_title($session_name);
-if (!exists $ENV{"TMUX"}) {
-    system("tmux attach -t '$session_name' 2>/dev/null");
-    log_print(0, "Attached to tmux session: $session_name");
-} else {
-    system("tmux switchc -t '$session_name' 2>/dev/null");
-    log_print(0, "Switched to tmux session: $session_name");
-}
+# }}}
 

@@ -1,0 +1,454 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Getopt::Long;
+use Scalar::Util qw(looks_like_number);
+use YAML::XS 'LoadFile';
+use YAML::Tiny;
+use POSIX "strftime";
+# use JSON;
+
+#### Dependencies ####
+# sudo apt install \
+#     libyaml libyaml-libyaml-perl libyaml-perl libyaml-shell-perl \
+#     libyaml-tiny-perl \
+#     libjson-perl
+
+# varables {{{
+my $_key = '';
+my $_print = 0;
+my $_list = 0;
+my $_set = 0;
+my $_help = 0;
+my $file_gpg_yml = $ENV{'HOME'}."/.local/gpg.yml";
+# }}}
+
+# logger {{{
+sub log_print {
+
+	# get log location
+	my ($package, $filename, $line) = caller();
+	my ($level, $message) = @_;
+	$filename = substr($filename, rindex($filename, '/') + 1);
+
+	my $current_date = strftime("%Y-%-m-%d %H:%M:%S", localtime);
+
+	my $log_level;
+	my $log_color;
+	my $log_name;
+
+	unless ($level) {
+		return;
+	}
+
+	# log info and color
+	if ($level eq 2) {
+			$log_level = 2;
+			$log_name = "debug";
+	} elsif ($level eq 3) {
+			$log_level = 3;
+			$log_name = "warn";
+	} elsif ($level eq 4) {
+			$log_level = 4;
+			$log_name = "error";
+	} else {
+			$log_level = 1;
+			$log_name = "info";
+	}
+
+	# log style
+	if ($log_level eq 4) {
+		die("$current_date $filename :[$line]: $line $message\n");
+	} elsif ($log_level eq 3) {
+		warn("$current_date $filename :[$line]: $message\n");
+	} elsif ($log_level eq 2) {
+		print("$message\n");
+	} elsif ($log_level eq 1) {
+		print("$message");
+	} else {
+		print("$current_date $filename $message\n");
+	}
+
+}
+# }}}
+
+# argument parsing {{{
+GetOptions(
+    'k|key=s'      => \$_key,
+    'l|list'       => \$_list,
+    's|set'        => \$_set,
+    'p|print'      => \$_print,
+    'h|help'       => \$_help,
+) or die "Error in command line arguments. Use -h for help.\n";
+# }}}
+
+# extra module handling {{{
+# }}}
+
+# yaml file {{{
+sub file_generate {
+    my @gpg_keys;
+    my %current;
+    my @users;
+    my $state = '';
+    open my $YFile, '-|', 'gpg --list-secret-keys' or die "Can't run gpg: $!";
+    while (<$YFile>) {
+        chomp;
+        # Start of new key block
+        if (/^sec\s+(\w+)\s+(\d{4}-\d{2}-\d{2})\s+\[SC\](?:\s+\[expires:\s+(\d{4}-\d{2}-\d{2})\])?/) {
+            push @gpg_keys, { %current, users => [@users] } if %current;
+            %current = (
+                create => $2,
+                algo   => $1,
+                expire => $3 // '',
+            );
+            @users = ();
+            $state = 'sec';
+        }
+
+        # Fingerprint
+        elsif (/^\s+([A-F0-9]{40})$/) {
+            $current{key} = $1;
+        }
+
+        # UID line
+        elsif (/^uid\s+\[[^\]]+\]\s+(.*?)\s+<(.+?)>/) {
+            my ($name, $mail) = ($1, $2);
+            my ($sig) = /uid\s+\[([^\]]+)\]/;
+            push @users, {
+                name => $name,
+                mail => $mail,
+                sig  => $sig,
+            };
+        }
+
+        # End of block when ssb is encountered
+        elsif (/^ssb\s+(\w+)/) {
+            $state = 'ssb';
+        }
+    }
+    close $YFile;
+    # # Emit YAML
+    # print YAML::XS::Dump({ gpg => \@gpg_keys });
+    # Push last block
+    push @gpg_keys, { %current, users => [@users] } if %current;
+
+    open(YFile, ">", $file_gpg_yml);
+    print(YFile "gpg:\n");
+    for my $key (@gpg_keys) {
+        $key->{key} =~ s/^\s+|\s+$//g;
+        $key->{create} =~ s/^\s+|\s+$//g;
+        $key->{expire} =~ s/^\s+|\s+$//g;
+        $key->{algo} =~ s/^\s+|\s+$//g;
+        print(YFile "- key: '$key->{key}'\n");
+        print(YFile "  create: '$key->{create}'\n");
+        print(YFile "  expire: '$key->{expire}'\n") if $key->{expire};
+        print(YFile "  algo: '$key->{algo}'\n");
+        print(YFile "  users:\n");
+        for my $user (@{ $key->{users} }) {
+            $user->{name} =~ s/^\s+|\s+$//g;
+            $user->{mail} =~ s/^\s+|\s+$//g;
+            $user->{sig} =~ s/^\s+|\s+$//g;
+            print(YFile "    - name: '$user->{name}'\n");
+            print(YFile "      mail: '$user->{mail}'\n");
+            print(YFile "      sig: '$user->{sig}'\n");
+        }
+    }
+    close(YFile);
+    log_print(3, "YAML file generated: ${file_gpg_yml}");
+}
+
+# print("$gpg_keys[0]{users}[0]{name}\n");
+# print("$gpg_keys[1]{key}\n");
+# print("$gpg_keys[2]{key}\n");
+
+if ($_print) {
+    file_generate();
+    exit 0;
+}
+# }}}
+
+my $yaml = YAML::Tiny->read($file_gpg_yml);
+# print($yaml);
+# print(Dumper($yaml));
+
+my @gpg_keys = @{ $yaml->[0]{gpg} };
+my %current;
+my @users;
+my $state = '';
+
+my $gpgs = $yaml->[0];
+
+# my $keys = $yaml->[0]->{key};
+# print(Dumper($keys));
+# print(Dumper($gpgs));
+# print(Dumper($gpgs));
+# for my $gpg_key ($gpgs) {
+#     print(Dumper($gpg_key->{key}));
+# }
+
+# while(my ($key, $value) = each %$gpgs) {
+#     while (my ($v, $k) = each %$value) {
+#         print("V: $v, K: $k\n");
+#     }
+# }
+
+# my %key_map = map { $_->{key} => $_ } $gpgs;
+# my $_name = $key_map{$_key}{users}[0]{'name'};
+# $_name = $gpgs->{users}->[0]->{'name'};
+# log_print(3, $_name);
+
+# apply settings {{{
+sub git_apply {
+    my $key = $_[0];
+    my $name = $_[1];
+    my $email = $_[2];
+
+    my $cmd_key = "git config user.signingkey '$key'";
+    my $cmd_name = "git config user.name '$name'";
+    my $cmd_email = "git config user.email '$email'";
+
+    log_print(2, "git config user.signingkey '$key'");
+    log_print(2, "git config user.name '$name'");
+    log_print(2, "git config user.email '$email'");
+
+    system("$cmd_key");
+    system("$cmd_name");
+    system("$cmd_email");
+}
+# }}}
+
+# values of a key {{{
+sub key_print {
+    my $_key = $_[0];
+    for my $key (@gpg_keys) {
+        $key->{key} =~ s/^\s+|\s+$//g;
+        if ($_key eq $key->{key}) {
+            if ($_set) {
+                log_print(2, "---");
+                log_print(2, "key: '$key->{key}'");
+                log_print(2, "algo: '$key->{algo}'");
+                log_print(2, "create: '$key->{create}'");
+                log_print(2, "expire: '$key->{expire}'") if $key->{expire};
+                log_print(2, "---");
+                my @users = @{ $key->{users} };
+                my $user_number = scalar @users;
+                if ($user_number gt 1) {
+                    my $counter = 1;
+                    log_print(2, "This key has $user_number email attached to it:");
+                    log_print(2, "");
+                    for my $user (@{ $key->{users} }) {
+                        $user->{name} =~ s/^\s+|\s+$//g;
+                        $user->{mail} =~ s/^\s+|\s+$//g;
+                        $user->{sig} =~ s/^\s+|\s+$//g;
+                        log_print(2, "  [$counter] name: '$user->{name}'");
+                        log_print(2, "      mail: '$user->{mail}'");
+                        log_print(2, "      sig: '$user->{sig}'");
+                        log_print(2, "");
+                        $counter += 1;
+                    }
+                    log_print(1, "Choose the perfered email: ");
+                    my $which = <>;
+                    if (looks_like_number($which)) {
+                        chomp $which;
+                        my $_idx = $which - 1;
+                        my $_key = $key->{key};
+                        my $_name = $users[$_idx]->{name};
+                        my $_mail = $users[$_idx]->{mail};
+                        git_apply($_key, $_name, $_mail);
+                    } else {
+                        log_print(4, "Input should be numeric, aborting..");
+                    }
+                } else {
+                    my $_key = $key->{key};
+                    my @users = @{ $key->{users} };
+                    for my $user (@{ $key->{users} }) {
+                        $user->{name} =~ s/^\s+|\s+$//g;
+                        $user->{mail} =~ s/^\s+|\s+$//g;
+                        $user->{sig} =~ s/^\s+|\s+$//g;
+                        my $_name = $user->{'name'};
+                        my $_mail = $user->{'mail'};
+                        # my $_sig = $user->{'sig'};
+                        git_apply($_key, $_name, $_mail);
+                    }
+                }
+            } else {
+                log_print(2, "---");
+                log_print(2, "key: '$key->{key}'");
+                # log_print(2, "algo: '$key->{algo}'");
+                log_print(2, "create: '$key->{create}'");
+                log_print(2, "expire: '$key->{expire}'") if $key->{expire};
+                log_print(2, "users:");
+                for my $user (@{ $key->{users} }) {
+                    $user->{name} =~ s/^\s+|\s+$//g;
+                    $user->{mail} =~ s/^\s+|\s+$//g;
+                    $user->{sig} =~ s/^\s+|\s+$//g;
+                    log_print(2, "- name: '$user->{name}'");
+                    log_print(2, "  mail: '$user->{mail}'");
+                    log_print(2, "  sig: '$user->{sig}'");
+                }
+                log_print(2, "---");
+            }
+        }
+    }
+}
+# }}}
+
+# list gpg keys {{{
+sub key_list {
+    for my $key (@gpg_keys) {
+        # for my $value ($key) {
+        #     print("$key: $value\n");
+        # }
+        $key->{key} =~ s/^\s+|\s+$//g;
+        log_print(2, "$key->{key}");
+    }
+}
+# }}}
+
+# # UI (working) {{{
+# $error = system("perldoc -l Curses::UI >/dev/null 2>&1");
+# if ($error eq '0') {
+#     use Curses::UI;
+# } else {
+#     die("There is no Curses::UI module or you are missing the perldoc command\nYou can install them using these commands:\n\nsudo apt install libcurses-ui-perl\nsudo apt install perl-doc\n\n");
+# }
+# my $cui = Curses::UI->new( -color_support => 1 );
+# my $win1 = $cui->add('win1', 'Window');
+#
+# my $listbox = $win1->add(
+#     'lb',
+#     'Listbox',
+#     -vscrollbar => 'left',
+#     -title      => "GPG Keys",
+#     -border     => 0,
+#     -wraparound => 1,
+#     -values     => \@key_ids,
+#     -onchange   => \&selected_item,
+# );
+# $cui->draw;
+# $cui->set_binding( \&exit_dialog , "\cQ");
+# $cui->set_binding( \&just_exit , "\cC");
+# $cui->mainloop();
+#
+# sub selected_item {
+#     my $item = $listbox->get_active_value();
+#     my %choose = (
+#         key    => $item,
+#         algo   => $key_map{$item}{'algo'},
+#         create => $key_map{$item}{'create'},
+#         expire => $key_map{$item}{'expire'},
+#         name   => $key_map{$item}{users}[0]{'name'},
+#         mail   => $key_map{$item}{users}[0]{'mail'},
+#         sig    => $key_map{$item}{users}[0]{'sig'},
+#     );
+#     my $return = $cui->dialog(
+#         -message   =>
+#             "Name: $choose{'name'}\n".
+#             "Email: $choose{'mail'}\n".
+#             "Signature: $item\n".
+#             "Expire date: $item\n"
+#         ,
+#         -title     => "This key will be used for git commit sign",
+#         # -values    => ['1', '0'],
+#         -buttons   => ['no', 'yes'],
+#     );
+#
+#     if ($return) {
+#         exit 0;
+#     } else {
+#         exit 1;
+#     }
+# }
+#
+# sub just_exit {
+#     exit 0;
+# }
+#
+# sub exit_dialog {
+#     my $return = $cui->dialog(
+#         -message   => "Wanna cancel?",
+#         # -title     => "Are you sure?",
+#         -buttons   => ['yes', 'no'],
+#     );
+#     exit 0 if $return;
+# }
+#
+# # }}}
+
+# main {{{
+if ($_key) {
+    key_print($_key);
+}
+
+if ($_list) {
+    key_list();
+}
+# }}}
+
+# # IGNOREME: {{{
+# # Create UI
+# my $cui = Curses::UI->new( -clear_on_exit => 1 );
+#
+# # Key values (labels) for the listbox
+# my @key_labels = map { $_->{key} } @gpg_keys;
+#
+# # Create a window
+# my $win = $cui->add( 'win1', 'Window' );
+#
+# # Add the text viewer to show user info
+# my $info = $win->add(
+#     'info_box',
+#     'TextViewer',
+#     -x      => 42,
+#     -y      => 1,
+#     -width  => 70,
+#     -height => 20,
+#     -text   => 'Select a key to view details.',
+# );
+#
+# # Callback for showing selected key details
+# sub update_info {
+#     my ($key) = @_;
+#     my ($match) = grep { $_->{key} eq $key } @gpg_keys;
+#     return unless $match;
+#
+#     my $text = join "\n", map {
+#         "user: $_->{name}\nmail: $_->{mail}\nsig: $_->{sig}\n"
+#     } @{ $match->{users} };
+#
+#     $info->text($text);
+# }
+#
+# # Add the listbox with keybindings
+# my $listbox = $win->add(
+#     'key_listbox',
+#     'Listbox',
+#     -y        => 1,
+#     -width    => 40,
+#     -height   => 20,
+#     -values   => \@key_labels,
+#     -labels   => { map { $_ => $_ } @key_labels },
+#     -onchange => sub {
+#         my $key = $_[0]->get_active_value;
+#         update_info($key);
+#     },
+# );
+#
+# # Set initial value and update info
+# $listbox->set_selection(0);
+# update_info($key_labels[0]);
+#
+# # Add basic keybindings
+# $cui->set_binding( sub { exit(0) }, "q" );
+# # $cui->set_binding( sub { $listbox->cursor_down }, "j", "down" );
+# # $cui->set_binding( sub { $listbox->cursor_up }, "k", "up" );
+# # $cui->set_binding( sub { $listbox->run }, "enter" );
+#
+# # Main loop
+# $cui->mainloop;
+# # }}}
+
+

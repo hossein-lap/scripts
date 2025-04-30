@@ -5,12 +5,14 @@ use warnings;
 use Getopt::Long;
 use File::Basename;
 use Cwd;
+use File::Copy 'move';
 
 # variables
 my $input = '';
 my $output = '';
 my $args = '';
 my $sshkey = '';
+my $command_mv = 0;
 my $help = 0;
 my $prompt = basename($0);
 
@@ -27,6 +29,9 @@ usage: [-h] [-u url] [-d directory] [-a extra_args]
        -a --args     extra args (to pass to the git)
        -h --help     print this message
 
+   • commands:
+       mv            move a bare repo with its activated worktrees
+
    • example:
        $prompt -u gitlab.com:hos-workflow/scripts -d test.git -a '--depth 1'
 
@@ -41,7 +46,146 @@ GetOptions(
     'a|args=s'     => \$args,
     'k|sshkey=s'   => \$sshkey,
     'h|help'       => \$help,
+    'mv'           => \$command_mv,
 ) or die "Error in command line arguments. Use -h for help.\n";
+
+# get list of directories
+sub dirlist {
+    my $path = $_[0];
+    $path =~ s,/$,,;
+    # print("dirlist: $path\n");
+    # system("ls $path");
+    die "Please specify which directory to search" unless -d $path;
+    my @dirs;
+    opendir (my $dir, $path);
+    while (my $entry = readdir $dir) {
+        next unless -d $path . '/' . $entry;
+        next if $entry eq '.' or $entry eq '..';
+        # print "\tdirlist: $entry\n";
+        unless ($entry =~ /^.bare/) {
+            push(@dirs, $entry)
+        }
+    }
+    return @dirs;
+    closedir $dir;
+}
+
+sub fixgitdir {
+    my $path_read = $_[0];
+    my $path_write = $_[1];
+    # my $base_read = $_[2];
+    # my $base_write = $_[3];
+    my $source = dirname($_[2]);
+    my $dest = dirname($_[3]);
+    open(INFO, '<' . $path_read) or die "Error opening $path_read: $!\n";
+    open(OUT, '>' . $path_write) or die "Error writing $path_write $!\n";
+
+    # print("$path_read -> $path_write\n");
+
+    foreach my $line (<INFO>) {
+
+        # chomp($line);
+
+        # # print("i:        $path_read\n");
+        # # print("  $line\n");
+        # print("$line\n");
+        # $line =~ s,$source,$dest,g;
+        # print("$line\n");
+        # # print("o:        $path_write\n");
+        # # print("  $line\n");
+
+        print(OUT "$line");
+
+        # print("I: gitdir: $source\n");
+        # print("O: gitdir: $dest\n");
+
+    }
+    close(INFO);
+    close(OUT);
+}
+
+# start
+if ($command_mv) {
+    my $file_source = $ARGV[0];
+    my $file_dest = $ARGV[1];
+    $file_dest =~ s,/$,,;
+    $file_source =~ s,/$,,;
+    my $file_source_base = basename($file_source);
+    my $file_dest_base = basename($file_dest);
+    my $file_source_dir = dirname($file_source);
+    my $file_dest_dir = dirname($file_dest);
+    my $file_name = basename($file_source);
+
+    # move($file_source, $file_dest) or die("Cannot move $file_source to $file_dest\n");
+
+    # # this is working as intended, just implement the thing
+    # # check if the basenames are the same or not
+    # if ($file_source_base eq $file_dest_base) {
+    #     print("dirname is included\n");
+    # } else {
+    #     print("dirname is NOT included\n");
+    # }
+
+    my $file_dest_dir_bare = $file_dest."/.bare/worktrees";
+    # my $file_dest_dir_worktree = $file_dest."/.bare/worktrees";
+
+    # print("$file_dest_dir_bare\n");
+    # print("$file_dest_dir_worktree\n");
+
+    # print("[baredir]\n");
+    # my @dirs_bare = dirlist($file_dest_dir_bare);
+    # foreach my $dir (@dirs_bare) {
+    #     my $branch_name = "$file_dest_dir_bare/$dir";
+    #     print("$branch_name\n");
+    #     system("cat $branch_name/gitdir");
+    #     # fixgitdir("$branch_name/gitdir", $file_source, $file_dest);
+    # }
+    # print("=========\n");
+
+    # print("\n");
+
+    # my $file_dest_dir_worktree = $file_dest."/.bare/worktrees";
+
+    print("[worktrees]\n");
+    my @dirs_worktree = dirlist($file_dest);
+    for my $dir (@dirs_worktree) {
+        my $branch_read = "$file_source/$dir";
+        my $branch_write = "$file_dest/$dir";
+        my $expand = ".git";
+    print("=========\n");
+    print("=========\n");
+    print("=========\n");
+        print("dir: $dir\n");
+        print("fsr: $file_source\n");
+        print("fds: $file_dest\n");
+        print("brr: $branch_read\n");
+        print("brw: $branch_write\n");
+        print("exp: $expand\n");
+    print("=========\n");
+    print("=========\n");
+    print("=========\n");
+        # fixgitdir("$branch_read/$expand", "$branch_write/$expand", $file_source, $file_dest);
+    }
+    print("=========\n");
+
+    print("[basedir]\n");
+    my @dirs_bare = dirlist($file_dest."/.bare/worktrees");
+    for my $dir (@dirs_bare) {
+        my $expand = ".bare/worktrees";
+        my $branch_read = "$file_source/$expand/$dir/gitdir";
+        my $branch_write = "$file_dest/$expand/$dir/gitdir";
+        fixgitdir("$branch_read", "$branch_write", $file_source, $file_dest);
+    }
+    print("=========\n");
+
+    # my @dirs_bare = dirlist($file_dest_dir_worktree);
+    # foreach my $dir (@dirs_bare) {
+    #     my $branch_name = "$file_dest_dir_worktree/$dir\n";
+    #     print("$branch_name");
+    # }
+
+    exit 0;
+}
 
 # checking args
 if ($help || !$input) {
@@ -50,11 +194,10 @@ if ($help || !$input) {
 }
 
 if (!$output) {
-    warn "No directory name is specified, Using default directory name, ";
+    print("No directory name is specified, Using default directory name, ");
     ($output) = $input =~ m{([^/]+)$};
 }
 
-# start
 my $ssh_prefix = $sshkey ? "GIT_SSH_COMMAND='ssh -i $sshkey'" : '';
 my $clone_cmd = "$ssh_prefix git clone $args --bare git\@$input $output";
 system($clone_cmd) == 0 or die "Failed to clone repository\n";

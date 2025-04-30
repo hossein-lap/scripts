@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gpgkey-parser -s -k $(gpgkey-parser -l | fzf --preview 'gpgkey-parser -k {}')
