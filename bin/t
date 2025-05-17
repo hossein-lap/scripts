@@ -1,0 +1,299 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use IO::Handle;
+use POSIX qw(strftime);
+use Term::ANSIColor;
+use Cwd;
+use Getopt::Long;
+use File::Basename;
+
+my $colorful = 1; # set 0 to disable colored logs
+my $tlist    = 0;
+my $tcreate  = 0;
+my $tfind    = 0;
+my $help     = 0;
+
+GetOptions(
+    'create'  => \$tcreate,
+    'list'    => \$tlist,
+    'find'    => \$tfind,
+    'h|help'  => \$help,
+) or die "Error in command line arguments. Use -h for help.\n";
+
+
+# helpers {{{
+
+# dirlist {{{
+sub dirlist {
+    my $path = $_[0];
+    $path =~ s,/$,,;
+    # print("dirlist: $path\n");
+    # system("ls $path");
+    # die "Please specify which directory to search" unless -d $path;
+    if (-d $path) {
+        my @dirs;
+        opendir(my $dir, $path);
+        while (my $entry = readdir $dir) {
+            next unless -d $path . '/' . $entry;
+            next if $entry eq '.' or $entry eq '..';
+            # print "\tdirlist: $entry\n";
+            # unless ($entry =~ /^.bare/) {
+            #     push(@dirs, $entry)
+            # }
+            push(@dirs, "$path/$entry");
+        }
+        return @dirs;
+        closedir $dir;
+    }
+}
+# }}}
+
+# log_print {{{
+sub log_print {
+    my ($level, $message) = @_;
+    my ($package, $filename, $line) = caller();
+    $filename = substr($filename, rindex($filename, '/') + 1);
+
+    my $current_date = strftime("%Y-%m-%d %H:%M:%S", localtime);
+    my $log_name = "info";
+    my $log_color = 'white';
+
+    if ($level eq 2) {
+        $log_name = "debug";
+        $log_color = 'blue';
+    } elsif ($level eq 3) {
+        $log_name = "warn";
+        $log_color = 'yellow';
+    } elsif ($level eq 4) {
+        $log_name = "error";
+        $log_color = 'red';
+    }
+
+    if ($level) {
+        if ($colorful) {
+            if ($level eq 4) {
+                die("$current_date $filename:$line " . color('bold ' . $log_color) . "$log_name" . color('reset') . " $message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line " . color('bold ' . $log_color) . "$log_name" . color('reset') . " $message\n");
+            } else {
+                print "$current_date $filename:$line " . color('bold ' . $log_color) . "$log_name" . color('reset') . " $message\n";
+            }
+        } else {
+            if ($level eq 4) {
+                die("$current_date $filename:$line [$log_name] $message\n");
+            } elsif ($level eq 3) {
+                warn("$current_date $filename:$line [$log_name] $message\n");
+            } else {
+                print "$current_date $filename:$line [$log_name] $message\n";
+            }
+        }
+    }
+}
+# }}}
+
+# term title {{{
+sub set_title {
+    my $arg = shift;
+    my $prefix = getpwuid($<) . '@' . `cat /etc/hostname`;
+    chomp $prefix;
+
+    my $path = defined $arg ? $arg : `pwd`;
+    chomp $path;
+    $path =~ s/\Q$ENV{HOME}\E/~/ if !defined $arg;
+
+    my $title = "[$prefix] tmux at $path";
+
+    # print "\e]10;${title}\a";
+    # print "\e]20;${title}\a";
+    # print "\e]30;${title}\a";
+
+    # print "\e]31;${title}\a";
+    # print "\e]32;${title}\a";
+    # print "\e]33;${title}\a";
+
+    # print "\031]0;$title\007";
+    # print "\032]0;$title\007";
+
+    print "\033]0;$title\007";
+    STDOUT->flush();  # immediate output
+}
+# }}}
+
+# get session name {{{
+sub get_name {
+    my $name = $_[0];
+    my $session_name;
+    chomp $name;
+    my @parts = split('/', $name);
+    my $basename = pop @parts;
+    my $dirname = pop @parts // '';
+    $session_name = "$dirname/$basename";
+    $session_name =~ tr/./_/;
+    return $session_name;
+}
+# }}}
+
+# }}}
+
+# print help {{{
+sub print_help {
+    my $prompt = basename($0);
+    print <<"EOF";
+$prompt: manage tmux sessions
+
+usage: [-h] [-create] [-list] [-find]
+
+   • arguments:
+       -create   Create new tmux session
+       -list     List existing tmux session(s)
+       -find     List of fixed directories to create session from
+       -help     print this message
+
+   • example:
+       $prompt -create
+
+   • running without any arguments will show this message
+EOF
+}
+# }}}
+
+# tmux new session {{{
+sub tmux_new_session {
+    my $full_path = $_[0];
+    my $session_name;
+    if (!defined $full_path) {
+        my $name = `pwd`;
+        $session_name = get_name();
+    } else {
+        $session_name = get_name($full_path);
+    }
+
+    set_title($session_name);
+
+    # check if session exists
+    my $check = 0;
+    my @tmux_sessions = `tmux ls 2>/dev/null`;
+    chomp @tmux_sessions;
+    foreach my $session (@tmux_sessions) {
+        if ($session =~ /^$session_name:/) {
+            $check = 1;
+            last;
+        }
+    }
+
+    if ($check == 0) {
+        if (exists $ENV{"TMUX"}) {
+            system("tmux new-session -s '$session_name' -c '$full_path' -d");
+            system("tmux switchc -t '$session_name'");
+            log_print(0, "Created and switched to new tmux session: $session_name");
+            exit;
+        } else {
+            system("tmux new-session -s '$session_name'");
+            log_print(0, "Created new tmux session: $session_name");
+            exit;
+        }
+    } else {
+        if (!exists $ENV{"TMUX"}) {
+            system("tmux attach -t '$session_name'");
+            log_print(0, "Attached to existing tmux session: $session_name");
+            exit;
+        } else {
+            system("tmux switchc -t '$session_name'");
+            log_print(0, "Switched to existing tmux session: $session_name");
+            exit;
+        }
+    }
+}
+# }}}
+
+# tmux list session {{{
+sub tmux_list_session {
+    my $title = "tmux-session-list";
+    set_title($title);
+
+    my @tmux_sessions = `tmux list-sessions 2>/dev/null`;
+    chomp @tmux_sessions;
+
+    if (!@tmux_sessions) {
+        log_print(4, "tmux: No active session(s)");
+        exit 1;
+    }
+
+    my $session_list = join("\n", map { (split /:/)[0] } @tmux_sessions);
+    my $session_name = `echo "$session_list" | fzf --preview 'echo "Window list"; echo "==========="; tmux list-windows -t {}'`;
+    chomp $session_name;
+
+    if (!$session_name) {
+        log_print(3, "No session selected");
+        exit 2;
+    }
+
+    set_title($session_name);
+    if (!exists $ENV{"TMUX"}) {
+        system("tmux attach -t '$session_name' 2>/dev/null");
+        log_print(0, "Attached to tmux session: $session_name");
+    } else {
+        system("tmux switchc -t '$session_name' 2>/dev/null");
+        log_print(0, "Switched to tmux session: $session_name");
+    }
+}
+# }}}
+
+# tmux sessionizer {{{
+sub tmux_sessionizer {
+    my $title = "tmux-sessionizer";
+    set_title($title);
+
+    my $home = $ENV{'HOME'};
+    my @base_dirs = (
+		$home."/dev/primejade/",
+        $home."/w",
+        $home."/documents/",
+        $home."/dev/soda-sh/",
+        $home."",
+    );
+    my @last_dirs;
+
+    foreach my $dir (@base_dirs) {
+        my @_tmp = dirlist($dir);
+        foreach my $tmp_dir (@_tmp) {
+            if ($tmp_dir) {
+                push(@last_dirs, $tmp_dir);
+            }
+        }
+    }
+
+    my $list = join("\n", @last_dirs);
+    chomp(@last_dirs);
+    my $dirname = `echo "$list" | sort | fzf`;
+    chomp($dirname);
+    if (!$dirname) {
+        log_print(3, "No session selected");
+        exit 2;
+    }
+    my $session_name = get_name($dirname);
+    print("session-name: [$session_name]\n");
+    print("path: $dirname\n");
+
+    tmux_new_session($dirname);
+}
+# }}}
+
+if ($tcreate) {
+    tmux_new_session();
+    exit 0;
+}
+
+if ($tlist) {
+    tmux_list_session();
+    exit 0;
+}
+
+if ($tfind) {
+    tmux_sessionizer();
+    exit 0;
+}
+
+print_help();
