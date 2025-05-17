@@ -7,4 +7,12 @@ if [ ! -d "${target}" ]; then
 	mkdir "${target}"
 fi
 
-stow "${name}" -t "${target}"
+case "${1}" in
+    -d|--delete|del|delete|d|rm)
+        find ${target} -type l -exec unlink {} \;
+        ;;
+    *)
+        stow "${name}" -t "${target}"
+        ;;
+esac
+
