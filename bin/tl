@@ -67,7 +67,7 @@ if (!@tmux_sessions) {
 }
 
 my $session_list = join("\n", map { (split /:/)[0] } @tmux_sessions);
-my $session_name = `echo "$session_list" | fzf`;
+my $session_name = `echo "$session_list" | fzf --preview 'echo "Window list"; echo "==========="; tmux list-windows -t {}'`;
 chomp $session_name;
 
 if (!$session_name) {
