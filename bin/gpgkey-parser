@@ -209,18 +209,30 @@ sub git_apply {
     my $key = $_[0];
     my $name = $_[1];
     my $email = $_[2];
+    my $commit = "~/.config/git/message-plain.txt";
 
     my $cmd_key = "git config user.signingkey '$key'";
     my $cmd_name = "git config user.name '$name'";
     my $cmd_email = "git config user.email '$email'";
+    my $cmd_template = "git config user.email '$commit'";
 
-    log_print(2, "git config user.signingkey '$key'");
-    log_print(2, "git config user.name '$name'");
-    log_print(2, "git config user.email '$email'");
+    if ($cmd_email =~ 'sinacomsys' || $cmd_email =~ 'hesmailzadeh95') {
+        $commit = "~/.config/git/message-sina.txt";
+        $cmd_template = "git config commit.template '$commit'";
+    }
+
+    my $cmd_commit = "git config commit.template '$commit'";
+
+    log_print(2, "$cmd_key");
+    log_print(2, "$cmd_name");
+    log_print(2, "$cmd_email");
+    log_print(2, "$cmd_commit");
 
     system("$cmd_key");
     system("$cmd_name");
     system("$cmd_email");
+    system("$cmd_commit");
+
 }
 # }}}
 
