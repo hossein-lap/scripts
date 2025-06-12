@@ -1,0 +1,116 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Basename;
+use File::Path qw(make_path);
+use Getopt::Long;
+
+# Default values
+my $help          = 0;
+my $path_iso      = '';
+my $image_path    = '';
+my $port_ssh      = "2323";
+my $headless      = 0;
+my $port_vnc  = "3";
+my $host          = "host0";
+my $interface     = "br0";
+my $sharedfolder = '';
+my $image_format  = '';  # Optional: e.g., qcow2, raw
+
+# Script metadata
+my $script_name = basename($0);
+my $script_path = dirname($0) . '/';
+
+# Argument parser
+GetOptions(
+    "display=s"   => \$port_vnc,
+    "headless"    => \$headless,
+    "host=s"      => \$host,
+    "ssh=s"       => \$port_ssh,
+    "h|help"      => \$help,
+    "image=s"     => \$image_path,
+    "interface=s" => \$interface,
+    "iso=s"       => \$path_iso,
+    "share=s"     => \$sharedfolder,
+    "format=s"    => \$image_format,
+) or die "Invalid options. Use --help for usage info.\n";
+
+# Print help and exit {{{
+sub print_help {
+    print <<"EOF";
+Usage: $script_name [options]
+
+Options:
+  --image <FILE>     Path to the disk image    (.img)
+  --iso <FILE>       Path to ISO file          (for installation)
+  --ssh <PORT>       SSH port to forward       (default: 2323)
+  --display <NUM>    VNC display port          (default: 3)
+  --host <NAME>      Tag used for VirtFS mount (default: host0)
+  --interface <NAME> Network bridge interface  (default: br0)
+  --share <DIR>      Shared folder path        (default: script_dir/sharedfolder/NAME)
+  --format <TYPE>    Image format              (e.g., qcow2, raw). Optional.
+  --headless         Run in headless mode      (omit VNC)
+  -h, --help         Show this help message
+
+EOF
+    exit 0;
+}
+# }}}
+
+print_help() if $help;
+
+# Derived values
+my $image_name = basename($image_path, ".img") if $image_path;
+$sharedfolder ||= "${script_path}sharedfolder/${image_name}" if $image_name;
+
+# Create shared folder structure
+make_path("sharedfolder");
+make_path($sharedfolder) if defined $sharedfolder;
+
+# Compose drive argument
+my $drive_arg = "file=$image_path";
+$drive_arg .= ",format=$image_format" if $image_format;
+
+my $mode = "Live" unless $port_vnc;
+$mode ||= "Normal";
+
+# Show environment
+my $state = <<"EOF";
+# QEMU Virtual Machine is running in $mode mode
+image:
+    name: $image_name
+    path: $image_path
+    format: $image_format
+script:
+    name: $script_name
+    path: $script_path
+ports:
+    ssh: $port_ssh
+    vnc: $port_vnc
+shared-folder:
+    path: $sharedfolder
+
+EOF
+
+print($state);
+
+my $qemu = `which qemu-system-x86_64`;
+print($qemu);
+
+# Launch QEMU
+my @cmd = (
+    "qemu-system-x86_64",
+    "-boot", "order=d",
+    "-drive", $drive_arg,
+    "-m", "4096",
+    "-smp", "4",
+    "-virtfs", "local,path=$sharedfolder,mount_tag=${host},security_model=mapped,id=${host}",
+    "-enable-kvm",
+    "-net", "nic,model=virtio",
+    "-net", "user,hostfwd=tcp::${port_ssh}-:22"
+);
+push @cmd, "-cdrom", "${path_iso}" unless $path_iso;
+push @cmd, "-vnc", ":${port_vnc}" unless $headless;
+
+exec @cmd;
+
