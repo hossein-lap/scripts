@@ -16,12 +16,12 @@ All automated and wrappers that I am using daily.
   asciidoctor's ruby API.
 
 .yad scripts
-* `color-picker`: yad / bash script tp select color from the GUI.
+* `color-picker`: yad / bash script to select color from the GUI and get the hex value
 * `yadpass`: askpass using `yad`
 * `zenpass`: askpass using `zenity`
 
 .dmenu scripts
-* `dmenu-bright`: display brighness manager
+* `dmenu-bright`: display brightness manager
 * `dmenu-exec`: command runner
 * `dmenu-exit`: session manager
 * `dmenu-flatpak`: flatpak runner
@@ -32,15 +32,15 @@ All automated and wrappers that I am using daily.
 * `dmenu-fontawesome`: font-icon picker
 * `dmenu-nerdfont`: font-icon picker
 * `dmenu-unicode`: unicode chars picker
-* `dmenu-notes`: take and manage persoal notes
+* `dmenu-notes`: take and manage personal notes
 * `dmenu-pass`: (WIP)
 * `dmenupass`: GNU pass wrapper
 * `dmenu-pdf`: (WIP)
-* `dmenu-play`: mpd controler
+* `dmenu-play`: mpd controller
 * `dmenu-record`: ffmpeg screen recorder (WIP)
 * `dmenurecord`: ffmpeg screen recorder (WIP)
 * `dmenu-shot`: screenshooter
-* `dmenu-srun`: script in hardcoded path to run
+* `dmenu-srun`: script in hard-coded path to run
 * `dmenu-stexec`: run commands in st (WIP)
 * `dmenu-tmux-exec`: (WIP)
 * `dmenu-usb`: use daemon
@@ -50,13 +50,13 @@ All automated and wrappers that I am using daily.
 
 .ImageMagick scripts
 * `imagemagick-alpha`: removes specific color (makes it transparent)
-* `imagemagick-append`: append two or more images (vertivally or horizontally)
+* `imagemagick-append`: append two or more images (vertically or horizontally)
 * `imagemagick-blur`: Add blur effect
-* `imagemagick-circle`: Crops image in curcles
+* `imagemagick-circle`: Crops image in circles
 * `imagemagick-color`: Convert specific color of an image to another
 * `imagemagick-crop`: 
 * `imagemagick-gradiant`: append custom color (gradiant) to borders
-* `imagemagick-merge`: merge two images on top of eachother
+* `imagemagick-merge`: merge two images on top of each other
 * `imagemagick-negate`: Revert image's color
 * `imagemagick-round`: Make borders round (crop the extra)
 * `imagemagick-shadow`: Shadow borders
@@ -68,7 +68,7 @@ All automated and wrappers that I am using daily.
 * `imagemagick-unixporn`: make shots like the ones on `r/unixporn`
 
 .Statusline scripts
-* `slsbattery`: battry status
+* `slsbattery`: battery status
 * `slsdate`: date
 * `slsfree`: CPU, Memory and Swap usage
 * `slsfrees`: CPU, Memory and Swap usage (I guess)
@@ -107,7 +107,7 @@ All automated and wrappers that I am using daily.
 * `gs`: Different git configs (due to my per-project-config workflow)
 * `lfub`: `lf` but with `ueberzug` support
 * `mcam`: `mpv` as webcam
-* `randr.sh`: setup multimonitor
+* `randr.sh`: setup multi-monitor
 * `rawfetch`: `curl` the raw content
 * `nmdns`: change DNS
 * `noisereduce`:  (WIP)
@@ -119,6 +119,6 @@ All automated and wrappers that I am using daily.
 * `stab`: `st` in `tabbed` (tab support)
 * `statusbars`:  (WIP)
 * `wttr`: Weather
-* `xkblayout`: Current keyboard layouy (Lang)
+* `xkblayout`: Current keyboard layout (Lang)
 * `xrate`: Xkeyboard delay and press-rate
 
