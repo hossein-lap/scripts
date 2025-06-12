@@ -6,27 +6,33 @@ use File::Path qw(make_path);
 use Getopt::Long;
 
 # Default values
-my $help          = 0;
-my $path_iso      = '';
-my $image_path    = '';
-my $port_ssh      = "2323";
-my $headless      = 0;
-my $port_vnc  = "3";
-my $host          = "host0";
-my $interface     = "br0";
+my $help         = 0;
+my $path_iso     = '';
+my $image_path   = '';
+my $port_ssh     = "2323";
+my $port_forward = '';
+my $headless     = 0;
+my $port_vnc     = "3";
+my $host         = "host0";
+my $interface    = "br0";
 my $sharedfolder = '';
-my $image_format  = '';  # Optional: e.g., qcow2, raw
+my $machine_ram  = '4096';
+my $machine_cpu  = '4';
+my $image_format = '';  # Optional: e.g., qcow2, raw
 
 # Script metadata
 my $script_name = basename($0);
 my $script_path = dirname($0) . '/';
 
-# Argument parser
+# argument parser {{{
 GetOptions(
     "display=s"   => \$port_vnc,
     "headless"    => \$headless,
     "host=s"      => \$host,
     "ssh=s"       => \$port_ssh,
+    "pforward=s"  => \$port_forward,
+    "ram=s"       => \$machine_ram,
+    "cpu=s"       => \$machine_cpu,
     "h|help"      => \$help,
     "image=s"     => \$image_path,
     "interface=s" => \$interface,
@@ -34,83 +40,122 @@ GetOptions(
     "share=s"     => \$sharedfolder,
     "format=s"    => \$image_format,
 ) or die "Invalid options. Use --help for usage info.\n";
+# }}}
 
-# Print help and exit {{{
+# print help and exit {{{
 sub print_help {
-    print <<"EOF";
-Usage: $script_name [options]
-
-Options:
-  --image <FILE>     Path to the disk image    (.img)
-  --iso <FILE>       Path to ISO file          (for installation)
-  --ssh <PORT>       SSH port to forward       (default: 2323)
-  --display <NUM>    VNC display port          (default: 3)
-  --host <NAME>      Tag used for VirtFS mount (default: host0)
-  --interface <NAME> Network bridge interface  (default: br0)
-  --share <DIR>      Shared folder path        (default: script_dir/sharedfolder/NAME)
-  --format <TYPE>    Image format              (e.g., qcow2, raw). Optional.
-  --headless         Run in headless mode      (omit VNC)
-  -h, --help         Show this help message
-
-EOF
+    my $message = "Usage: $script_name [options]\n".
+                  "\n".
+                  "Options:\n".
+                  "  --image <FILE>        Path to the disk image    (.img)\n".
+                  "  --iso <FILE>          Path to ISO file          (for installation)\n".
+                  "  --ssh <PORT>          SSH port to forward       (default: ${port_ssh})\n".
+                  "  --pforward <SRC:DST>  port forward              (comma separated: e.g. 8088:80,9090:6304,9099:21)\n".
+                  "  --cpu <#>             How many core pass to vm  (default: ${machine_cpu})\n".
+                  "  --ram <MB>            How much ram pass to vm   (default: ${machine_ram})\n".
+                  "  --display <NUM>       VNC display port          (default: ${port_vnc})\n".
+                  "  --host <NAME>         Tag used for VirtFS mount (default: ${host})\n".
+                  "  --interface <NAME>    Network bridge interface  (default: ${interface})\n".
+                  "  --share <DIR>         Shared folder path        (default: '${sharedfolder}')\n".
+                  "  --format <TYPE>       Image format              (e.g., qcow2, raw) -- Optional\n".
+                  "  --headless            Run in headless mode      (omit VNC)\n".
+                  "  -h, --help            Show this help message\n";
+    print($message);
     exit 0;
 }
 # }}}
 
 print_help() if $help;
 
-# Derived values
+# extra stuff {{{
+# derived values
 my $image_name = basename($image_path, ".img") if $image_path;
 $sharedfolder ||= "${script_path}sharedfolder/${image_name}" if $image_name;
 
-# Create shared folder structure
+# create shared folder structure
 make_path("sharedfolder");
 make_path($sharedfolder) if defined $sharedfolder;
 
-# Compose drive argument
+# compose drive argument
 my $drive_arg = "file=$image_path";
 $drive_arg .= ",format=$image_format" if $image_format;
 
+# handle port-forward
+my $pfargs = "user,hostfwd=tcp::${port_ssh}-:22";
+my @_pfs = split(",", $port_forward);
+for my $_pf (@_pfs) {
+    my @_ps = split(":", $_pf);
+    my $port_host = $_ps[0];
+    my $port_guest = $_ps[1];
+    $pfargs .= ",hostfwd=tcp::${port_host}-:${port_guest}" if $pfargs;
+}
+
+# view running mode
 my $mode = "Live" unless $port_vnc;
 $mode ||= "Normal";
+# }}}
 
-# Show environment
-my $state = <<"EOF";
-# QEMU Virtual Machine is running in $mode mode
-image:
-    name: $image_name
-    path: $image_path
-    format: $image_format
-script:
-    name: $script_name
-    path: $script_path
-ports:
-    ssh: $port_ssh
-    vnc: $port_vnc
-shared-folder:
-    path: $sharedfolder
+# show environment {{{
+sub print_env {
+    my $state = "# QEMU Virtual Machine is running in $mode mode\n".
+                "machine:\n".
+                "    cpu $machine_cpu\n".
+                "    ram $machine_ram\n".
+                "image:\n".
+                "    name: $image_name\n".
+                "    path: $image_path\n".
+                "    format: $image_format\n".
+                "script:\n".
+                "    name: $script_name\n".
+                "    path: $script_path\n".
+                "ports:\n".
+                "    ssh: $port_ssh\n".
+                "    vnc: $port_vnc\n".
+                "    forwards: '$port_forward'\n".
+                "shared-folder:\n".
+                "    path: $sharedfolder\n".
+                "9pfs:\n".
+                "    tag: $host\n".
+                "bridge:\n".
+                "    interface: $interface\n";
+    print($state);
+}
+# }}}
 
-EOF
+# launch QEMU {{{
+sub vmlaunch {
+    my $qemu = `which qemu-system-x86_64`;
+    my @_name = split("/", $qemu);
+    my $name = $_name[-1];
+    chomp($qemu);
+    chomp($name);
 
-print($state);
+    unless ($image_path) {
+        die("$script_name: $name: No image provided\n");
+    }
 
-my $qemu = `which qemu-system-x86_64`;
-print($qemu);
+    if ($qemu) {
+        print_env();
+        # exec command
+        my @cmd = (
+            $qemu,
+            "-boot", "order=d",
+            "-drive", $drive_arg,
+            "-m", "4096",
+            "-smp", "4",
+            "-virtfs", "local,path=$sharedfolder,mount_tag=${host},security_model=mapped,id=${host}",
+            "-enable-kvm",
+            "-net", "nic,model=virtio",
+            "-net", $pfargs,
+        );
+        push @cmd, "-cdrom", "${path_iso}" unless $path_iso;
+        push @cmd, "-vnc", ":${port_vnc}" unless $headless;
+        exec @cmd;
+    } else {
+        die("$script_name: $name: command not found\n");
+    }
+}
+# }}}
 
-# Launch QEMU
-my @cmd = (
-    "qemu-system-x86_64",
-    "-boot", "order=d",
-    "-drive", $drive_arg,
-    "-m", "4096",
-    "-smp", "4",
-    "-virtfs", "local,path=$sharedfolder,mount_tag=${host},security_model=mapped,id=${host}",
-    "-enable-kvm",
-    "-net", "nic,model=virtio",
-    "-net", "user,hostfwd=tcp::${port_ssh}-:22"
-);
-push @cmd, "-cdrom", "${path_iso}" unless $path_iso;
-push @cmd, "-vnc", ":${port_vnc}" unless $headless;
-
-exec @cmd;
+vmlaunch();
 
